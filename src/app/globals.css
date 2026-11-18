@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+/* Dusty blue + pastel yellow palette */
+@theme {
+  --color-dusk-950: #1d2b39;
+  --color-dusk-900: #26384a;
+  --color-dusk-700: #3e5a74;
+  --color-dusk-500: #6f8faf;
+  --color-dusk-300: #a9bfd4;
+  --color-dusk-100: #e7eef5;
+  --color-dusk-50: #f3f7fa;
+  --color-butter-500: #ebc94f;
+  --color-butter-400: #f2d675;
+  --color-butter-200: #f8e9a8;
+  --color-butter-50: #fdf8e4;
+  --color-cream: #fcfaf4;
+}
+
+@theme inline {
+  --font-serif: var(--font-cormorant), Georgia, serif;
+  --font-sans: var(--font-manrope), system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-dusk-900);
+  font-family: var(--font-sans);
+}
+
+section[id] {
+  scroll-margin-top: 4.5rem;
+}
+
+/* Force dark text on the yellow highlight so selections read on light AND dark sections */
+::selection {
+  background: var(--color-butter-400);
+  color: var(--color-dusk-950);
+}
