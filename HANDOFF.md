@@ -1,7 +1,63 @@
 # Handoff: PJ & Jedah wedding site
 
+> **Jedah, start here.** Open **Claude Code** (the desktop app, the VS Code extension, or the terminal; regular claude.ai chat
+> can't install or run things), give it this file, and say: **"Set this up for me."** It handles everything else and tells you
+> when it's ready. After that, just ask for what you want changed, like "change the dress code to Filipiniana" or "add a photo
+> gallery". Every time it changes something, it checks with you before it goes live.
+
 For the AI coding agent helping **Jedah** edit this site. Read all of this before changing anything.
 Written 2026-11-19 by PJ's agent. If something here conflicts with what Jedah asks, ask her before acting.
+
+## 0. Agent: first-run setup (do this yourself, end to end)
+
+Jedah is not a developer. Do every step yourself, explain briefly in plain language what you're doing, and only stop for the
+things that need her: approving installs, signing in, or choosing a name or folder. Skip any step that's already done.
+Work out her operating system first and use the matching commands.
+
+1. **Prerequisites.** Check `git --version`, `node --version` (needs **20 or newer**; 22 LTS is fine) and `npm --version`.
+   Install whatever is missing, with her approval:
+   - Windows: `winget install Git.Git`, `winget install OpenJS.NodeJS.LTS`
+   - macOS: `brew install git node` (if Homebrew is missing, use the installers from git-scm.com and nodejs.org)
+   - Also install the **GitHub CLI** (`winget install GitHub.cli` / `brew install gh`). It's the simplest way to sign in.
+   Open a new shell after installing so the new commands are found.
+2. **GitHub access.** She must have accepted the collaborator invite to `pjudal/wedding-site` (it's in her email, or at
+   https://github.com/pjudal/wedding-site/invitations). Then run `gh auth login --web` (GitHub.com, HTTPS, sign in in the
+   browser) and `gh auth setup-git`.
+   Check: `gh api repos/pjudal/wedding-site --jq .permissions.push` must print `true`. If it prints `false`, she hasn't
+   accepted the invite yet.
+3. **Get the code.** If you're not already inside a clone of this repo, ask where she'd like it (default: a `wedding-site`
+   folder in her home folder), then `git clone https://github.com/pjudal/wedding-site.git` and `cd` into it.
+4. **Commit identity, for this repo only** (never `--global`, so you don't touch her other projects):
+   - `git config user.name "<her name, ask her how she wants it shown>"`
+   - `git config user.email "<id>+<login>@users.noreply.github.com"`. Get the values with `gh api user --jq '"\(.id)+\(.login)"'`.
+     This keeps her real email out of the public history.
+5. **Install and seed:** `npm install`, then `npm run seed`. With no guest list locally, it uses the made-up example guests,
+   which is expected.
+6. **Prove it works:** `npm run lint && npx tsc --noEmit && npm run build` must all pass.
+   Then start `npm run dev` and do a test RSVP as "Juan Dela Cruz" at http://localhost:3000 (fetch or browser).
+   Afterwards run `npm run seed -- --reset` to clear the test answer.
+7. **Hand over.** Tell her it's ready, give her the local preview link (http://localhost:3000) and the live site
+   (https://pj-jedah-wedding.vercel.app), and suggest 2 or 3 example requests.
+   You don't need the Google Sheet secret for any of this; local mode uses test data.
+
+If a step fails in a way you can't fix (for example a corporate laptop blocking installs), explain it simply and suggest she ask PJ.
+
+## Every change request: the routine
+
+1. **Understand it.** If it involves a fact (time, price, place, policy) that isn't confirmed in section 1, ask her. Never guess.
+2. **Pull first:** `git pull` (PJ may have pushed changes).
+3. **Make the change**, following the rules in section 3 and the how-tos in section 5.
+4. **Check it:** `npm run lint && npx tsc --noEmit && npm run build`, then show her in `npm run dev`
+   (desktop and phone width). A screenshot or the local link is enough.
+5. **Ask before publishing:** "Ready to put this live?" Pushing to `main` updates the real site.
+6. **Publish:** `git status` (make sure no `data/` or `.env` files are included), commit with a plain message, `git push`.
+7. **Confirm it's live:** after 1-2 minutes, check
+   `https://api.github.com/repos/pjudal/wedding-site/commits/<sha>/status` (`state` should be `success`), or fetch
+   https://pj-jedah-wedding.vercel.app and confirm the new text is there. If the deploy failed, the old version is still up;
+   fix and push again, or tell her to ask PJ.
+
+Guest list changes (adding or removing people, grouping couples) happen in the **Google Sheet**, not in code. Point her there
+(section 5, "Manage guests").
 
 ## 1. What this is
 
