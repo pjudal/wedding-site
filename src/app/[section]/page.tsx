@@ -66,8 +66,8 @@ export default async function WeddingPage({ params }: PageProps<"/[section]">) {
       </div>
       {section === "travel" && (
         <>
-          <section id="getting-there" className="border-t border-dusk-100">
-            <div className="flow-root bg-butter-200 px-5 pt-14 md:pt-20">
+          <section id="getting-there" className="border-t border-dusk-100 bg-butter-200">
+            <div className="flow-root px-5 pt-14 md:pt-20">
               <SectionHeading eyebrow="Travel Guide" title="Getting There" eyebrowClassName="text-dusk-700" />
             </div>
             <div className="mx-auto grid max-w-5xl gap-4 px-5 py-10 md:grid-cols-2 md:px-8 md:py-14">

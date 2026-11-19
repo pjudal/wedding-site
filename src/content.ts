@@ -177,17 +177,9 @@ export const outfitIdeas = [
   {
     title: "Ladies",
     description: "Choose an airy midi or maxi dress in a pastel or floral print. Lightweight fabrics and dressy flats or sandals are great for the beach. Please skip heavy gowns.",
-    references: [
-      { label: "Wedding guest outfit", href: "https://ph.pinterest.com/pin/950189221398741114/" },
-      { label: "Semi-formal guest attire", href: "https://ph.pinterest.com/pin/1083960204093097258/" },
-    ],
   },
   {
     title: "Men",
     description: "Wear a lightweight button-down with tailored chinos and loafers. Linen and breathable cotton are good choices.",
-    references: [
-      { label: "Light neutrals for men", href: "https://ph.pinterest.com/pin/533817362104563456/" },
-      { label: "Beach wedding attire for men", href: "https://ph.pinterest.com/pin/375065475236717219/" },
-    ],
   },
-];
+] as const;

@@ -3,7 +3,7 @@ import illustratedCoast from "@/assets/la-union-illustrated-map.webp";
 import alpas from "@/assets/la-union-alpas.webp";
 import coffee from "@/assets/la-union-coffee.webp";
 import gefseis from "@/assets/la-union-gefseis.webp";
-import { laUnionFavorites } from "@/content";
+import { laUnionFavorites, site } from "@/content";
 
 const photos = {
   alpas: { image: alpas, alt: "Alpas Coffee and Plant Studio’s thatched café and garden seating" },
@@ -49,6 +49,19 @@ export function LaUnionMap() {
               {index + 1}
             </a>
           ))}
+          <a
+            href={site.mapsUrl}
+            aria-label="Bulod, you are here. Open in Google Maps"
+            className="absolute bottom-[6%] left-[55%] flex -translate-x-1/2 flex-col items-center gap-1 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dusk-950"
+          >
+            <span aria-hidden="true" className="grid size-8 place-items-center rounded-full rounded-bl-none border-2 border-cream bg-butter-400 text-dusk-950 shadow-sm">
+              ♥
+            </span>
+            <span className="whitespace-nowrap rounded-md bg-cream/95 px-2 py-1 text-center leading-tight text-dusk-950 shadow-sm">
+              <span className="block font-serif text-lg font-semibold sm:text-2xl">{site.venueName}</span>
+              <span className="block text-xs font-semibold">You are here</span>
+            </span>
+          </a>
         </div>
         <ul className="grid auto-rows-fr">
           {laUnionFavorites.map((place, index) => (
