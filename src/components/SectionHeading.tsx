@@ -4,15 +4,17 @@ export function SectionHeading({
   eyebrow,
   title,
   light = false,
+  eyebrowClassName = light ? "text-butter-200" : "text-dusk-500",
 }: {
   eyebrow: string;
   title: string;
   light?: boolean;
+  eyebrowClassName?: string;
 }) {
   return (
     <Reveal className="mb-10 text-center md:mb-14">
       <p
-        className={`text-xs font-semibold uppercase tracking-[0.3em] ${light ? "text-butter-200" : "text-dusk-500"}`}
+        className={`text-xs font-semibold uppercase tracking-[0.3em] ${eyebrowClassName}`}
       >
         {eyebrow}
       </p>
