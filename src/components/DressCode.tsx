@@ -7,8 +7,8 @@ import { GuestPalette } from "./GuestPalette";
 import { attireToAvoid, detailHeadings, dressCodeTagline, outfitIdeas, site } from "@/content";
 
 const illustrations = {
-  Ladies: { image: ladiesLooks, alt: "Ten watercolor beach wedding looks with airy midi and maxi dresses in blush, peach, lilac, mint and sage, including floral prints" },
-  Men: { image: menLooks, alt: "Ten watercolor beach wedding looks with pastel button-downs, tailored chinos and loafers. Several men wear sunglasses." },
+  Ladies: { image: ladiesLooks, alt: "Guests in pastel and floral dresses chat with entourage friends in dusty blue and butter yellow" },
+  Men: { image: menLooks, alt: "Guests in pastel button-downs and chinos mingle with entourage friends in dusty blue and butter yellow vests. Several men wear sunglasses." },
 };
 
 export function DressCode() {
@@ -22,8 +22,15 @@ export function DressCode() {
         <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-dusk-700 sm:text-base">{site.dressCode}</p>
       </header>
 
-      <div className="mx-auto mt-8 max-w-md">
-        <GuestPalette />
+      <div className="mx-auto mt-8 grid max-w-2xl gap-6 text-center sm:grid-cols-[1fr_2fr]">
+        <div>
+          <h2 className="mb-3 font-serif text-2xl italic text-dusk-700">Entourage</h2>
+          <GuestPalette entourage />
+        </div>
+        <div>
+          <h2 className="mb-3 font-serif text-2xl italic text-dusk-700">Guests</h2>
+          <GuestPalette showGuestShades />
+        </div>
       </div>
 
       <div className="mt-10 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_13rem]">

@@ -45,7 +45,7 @@ export const site = {
   ],
 };
 
-export const attireToAvoid = ["White", "Jeans", "Shorts", "Polo shirts", "Slippers"];
+export const attireToAvoid = ["White", "Black", "Jeans", "Shorts", "Polo shirts", "Slippers"];
 
 export const faqs: { q: string; a: string }[] = [
   {
@@ -180,6 +180,6 @@ export const outfitIdeas = [
   },
   {
     title: "Men",
-    description: "Wear a lightweight button-down with tailored chinos and loafers. Linen and breathable cotton are good choices.",
+    description: "Wear a lightweight button-down with tailored chinos and loafers. Linen and breathable cotton are good choices. Entourage men wear a vest in dusty blue or pastel yellow.",
   },
 ] as const;
