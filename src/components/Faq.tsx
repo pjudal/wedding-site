@@ -1,12 +1,13 @@
 import { faqs } from "@/content";
 import { Reveal } from "./Reveal";
-import { SectionHeading } from "./SectionHeading";
 
-export function Faq() {
+export function Faq({ title }: { title: string }) {
   return (
     <section id="faq" className="px-4 py-20 md:py-28">
       <div className="mx-auto max-w-3xl">
-        <SectionHeading eyebrow="Good to know" title="Questions" />
+        <h1 className="mb-10 text-center font-serif text-5xl text-dusk-900 md:mb-14 md:text-7xl">
+          {title}
+        </h1>
         <Reveal>
           <div className="divide-y divide-dusk-100 rounded-3xl bg-white/70 px-6 ring-1 ring-dusk-100 md:px-8">
             {faqs.map((f) => (

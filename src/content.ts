@@ -70,6 +70,7 @@ export const weddingTabs = [
   { href: "/things-to-do", label: "While You're Here" },
   { href: "/photos", label: "Us, Lately" },
   { href: "/wedding-party", label: "By Our Side" },
+  { href: "/faq", label: "FAQs" },
   { href: "/rsvp", label: "RSVP" },
 ] as const;
 
@@ -84,6 +85,7 @@ export const weddingPages = {
   "things-to-do": { title: "While You're Here", intro: "A few of our favorite spots in La Union." },
   photos: { title: "Us, Lately", intro: "Photos coming soon." },
   "wedding-party": { title: "By Our Side", intro: "Meet our entourage here soon." },
+  faq: { title: "FAQs" },
   rsvp: { title: "RSVP" },
 };
 

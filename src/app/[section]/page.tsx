@@ -14,11 +14,18 @@ export default async function WeddingPage({ params }: PageProps<"/[section]">) {
 
   const page = weddingPages[section as keyof typeof weddingPages];
 
+  if (section === "faq") {
+    return (
+      <main className="min-h-[70svh] pt-16">
+        <Faq title={page.title} />
+      </main>
+    );
+  }
+
   if (section === "rsvp") {
     return (
       <main className="pt-16" aria-label={page.title}>
         <Rsvp />
-        <Faq />
       </main>
     );
   }
