@@ -4,7 +4,7 @@ import menLooks from "@/assets/attire-men-looks.webp";
 import bulodPool from "@/assets/bulod-pool.webp";
 import bulodSunset from "@/assets/timeline-day-1.webp";
 import { GuestPalette } from "./GuestPalette";
-import { attireToAvoid, detailHeadings, dressCodeTagline, outfitIdeas, site } from "@/content";
+import { attireToAvoid, dressCodeTagline, outfitIdeas, site, weddingPages } from "@/content";
 
 const illustrations = {
   Ladies: { image: ladiesLooks, alt: "Guests in pastel and floral dresses chat with entourage friends in dusty blue and butter yellow" },
@@ -15,10 +15,10 @@ export function DressCode() {
   return (
     <section aria-labelledby="dress-code" className="bg-dusk-500 pb-16 md:pb-24">
       <header className="bg-butter-200 px-4 pb-12 pt-28 text-center md:pb-14 md:pt-36">
-        <h1 id="dress-code" className="scroll-mt-20 font-serif text-4xl italic leading-none text-dusk-900 sm:text-6xl">
-          {detailHeadings.dressCode}
+        <h1 id="dress-code" className="scroll-mt-20 font-serif text-5xl text-dusk-900 md:text-7xl">
+          {weddingPages["dress-code"].title}
         </h1>
-        <p className="mt-3 font-serif text-2xl italic text-dusk-700">{dressCodeTagline}</p>
+        <p className="mt-3 font-serif text-2xl italic text-[color-mix(in_srgb,var(--color-dusk-700)_78%,var(--color-dusk-500))]">{dressCodeTagline}</p>
         <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-dusk-700 sm:text-base">{site.dressCode}</p>
       </header>
 
