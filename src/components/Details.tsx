@@ -13,8 +13,12 @@ import { Reveal } from "./Reveal";
 
 function Card({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="h-full rounded-3xl bg-white/70 p-7 shadow-[0_10px_40px_-20px_rgba(38,56,74,0.35)] ring-1 ring-dusk-100 md:p-8">
-      <h2 className="font-serif text-3xl font-semibold leading-tight text-dusk-950 sm:text-4xl">{label}</h2>
+    <div className="h-full rounded-3xl bg-cream p-7 shadow-[0_10px_40px_-20px_rgba(38,56,74,0.35)] ring-1 ring-dusk-100 md:p-8">
+      <h2 className="font-serif text-3xl font-semibold leading-tight text-dusk-500 sm:text-4xl">
+        <span className="box-decoration-clone bg-linear-to-t from-butter-200 from-30% to-transparent to-30% px-1">
+          {label}
+        </span>
+      </h2>
       <div className="mt-4">{children}</div>
     </div>
   );
@@ -22,7 +26,7 @@ function Card({ label, children }: { label: string; children: React.ReactNode })
 
 export function Details() {
   return (
-    <section id="details" className="px-4 pb-20 pt-12 md:pb-28 md:pt-16">
+    <section id="details" className="bg-dusk-500 px-4 pb-20 pt-12 md:pb-28 md:pt-16">
       <div className="mx-auto max-w-6xl">
 
         <div className="grid gap-5 md:grid-cols-2">
@@ -95,7 +99,7 @@ export function Details() {
                 <li key={date} className="relative">
                   <span aria-hidden="true" className="absolute -left-[31px] top-1.5 size-3 rounded-full bg-butter-400 ring-4 ring-cream sm:-left-[39px]" />
                   <p className="text-xs font-semibold uppercase tracking-widest text-dusk-600">{date}</p>
-                  <h3 className="mt-1 font-serif text-3xl font-semibold leading-tight text-dusk-950 sm:text-4xl">{title}</h3>
+                  <h3 className="mt-1 font-serif text-3xl font-semibold leading-tight text-dusk-500 sm:text-4xl">{title}</h3>
                   {note && <p className="mt-2 leading-relaxed text-dusk-700">{note}</p>}
                   {index === 0 && (
                     <figure className="mt-4 max-w-80">
