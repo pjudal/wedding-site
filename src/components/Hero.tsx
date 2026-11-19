@@ -16,7 +16,7 @@ export function Hero() {
   const fade = useTransform(scrollYProgress, [0, 0.55], [1, 0]);
 
   return (
-    <section id="top" ref={ref} className="relative h-[100svh] min-h-[600px] overflow-hidden bg-dusk-100">
+    <section id="top" tabIndex={-1} ref={ref} className="relative h-[100svh] min-h-[600px] overflow-hidden bg-dusk-100">
       {/* Background photo: slow settle-in zoom + gentle parallax on scroll */}
       <motion.div
         style={{ y }}

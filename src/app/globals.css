@@ -50,3 +50,26 @@ section[id] {
   background: var(--color-butter-400);
   color: var(--color-dusk-950);
 }
+
+body:has(dialog[open]) {
+  overflow: hidden;
+}
+
+.welcome-bird {
+  animation: welcome-glide 4.5s ease-in-out infinite alternate;
+}
+
+@keyframes welcome-glide {
+  from { transform: translate(-.75rem, .2rem) scaleY(.65); }
+  to { transform: translate(.75rem, -.4rem) scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome-bird {
+    animation: none;
+  }
+}
+
+.welcome-sand-note {
+  transform: rotate(-8deg) skewX(-5deg);
+}
