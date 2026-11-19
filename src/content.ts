@@ -68,7 +68,7 @@ export const faqs: { q: string; a: string }[] = [
 
 export const weddingTabs = [
   { href: "/", label: "Home" },
-  { href: "/our-story", label: "Our Firsts Together" },
+  { href: "/our-story", label: "Firsts & Favorites" },
   { href: "/photos", label: "Us, Lately" },
   { href: "/dress-code", label: "Dress Code" },
   { href: "/travel", label: "Pack Your Bags" },
@@ -84,7 +84,7 @@ export const firsts: { title: string; story?: string }[] = [
 ];
 
 export const weddingPages = {
-  "our-story": { title: "Our Firsts Together" },
+  "our-story": { title: "Firsts & Favorites" },
   travel: { title: "Pack Your Bags", intro: "From Manila to Bulod, La Union. The ceremony, reception, and after-party will all take place at Bulod." },
   "things-to-do": { title: "While You're Here", intro: "A few of our favorite spots in La Union." },
   photos: { title: "Us, Lately", intro: "Photos coming soon." },
