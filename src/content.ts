@@ -123,7 +123,7 @@ export const homepageAttireNote = "Think airy dresses or lightweight button-down
 export const dressCodeTagline = "Come as you are (but make it cute!)";
 
 export const saveTheDate = "Save the date. We’d love to see you there!";
-export const weddingTimelineIntro = "We’ll say “I do” on Sunday, and we’d love to spend the weekend by the sea with you.";
+export const weddingTimelineIntro = "We’ll say “I do” on Sunday, but we’d love to spend the weekend by the sea with you.";
 
 export const weddingTimeline = [
   {
@@ -146,7 +146,8 @@ export const weddingTimeline = [
   {
     date: "Monday, March 22",
     title: "Until next time",
-    events: [{ label: "Time to Go Home", time: "12:00 noon" }],
+    note: "Take it slow this morning. You’ve still got half the day to enjoy La Union before heading home.",
+    events: [{ label: "Wrap up at Bulod", time: "12:00 noon" }],
   },
 ];
 

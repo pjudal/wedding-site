@@ -6,13 +6,15 @@ import { detailHeadings, homepageAttireNote, saveTheDate, site, weddingTimeline,
 import entourageAttire from "@/assets/attire-entourage.webp";
 import guestAttire from "@/assets/attire-guests.webp";
 import dayOnePhoto from "@/assets/timeline-day-1.webp";
+import dayTwoPhoto from "@/assets/timeline-day-2.webp";
+import dayThreePhoto from "@/assets/timeline-day-3.webp";
 import { GuestPalette } from "./GuestPalette";
 import { Reveal } from "./Reveal";
 
 function Card({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="h-full rounded-3xl bg-white/70 p-7 shadow-[0_10px_40px_-20px_rgba(38,56,74,0.35)] ring-1 ring-dusk-100 md:p-8">
-      <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-dusk-500">{label}</h2>
+      <h2 className="font-serif text-3xl font-semibold leading-tight text-dusk-950 sm:text-4xl">{label}</h2>
       <div className="mt-4">{children}</div>
     </div>
   );
@@ -93,13 +95,13 @@ export function Details() {
                 <li key={date} className="relative">
                   <span aria-hidden="true" className="absolute -left-[31px] top-1.5 size-3 rounded-full bg-butter-400 ring-4 ring-cream sm:-left-[39px]" />
                   <p className="text-xs font-semibold uppercase tracking-widest text-dusk-600">{date}</p>
-                  <h3 className="mt-1 font-serif text-3xl text-dusk-900">{title}</h3>
+                  <h3 className="mt-1 font-serif text-3xl font-semibold leading-tight text-dusk-950 sm:text-4xl">{title}</h3>
                   {note && <p className="mt-2 leading-relaxed text-dusk-700">{note}</p>}
                   {index === 0 && (
                     <figure className="mt-4 max-w-80">
                       <Image
                         src={dayOnePhoto}
-                        alt="An orange sunset at Bulod"
+                        alt="Sunset over the sea reflected in Bulod’s pool"
                         sizes="(max-width: 420px) 75vw, 320px"
                         className="h-auto w-full rounded-2xl"
                       />
@@ -107,6 +109,14 @@ export function Details() {
                         <a href="https://www.instagram.com/p/DV8QwB7k8Ha/" className="underline underline-offset-4">Photo by Bulod</a>
                       </figcaption>
                     </figure>
+                  )}
+                  {index > 0 && (
+                    <Image
+                      src={index === 1 ? dayTwoPhoto : dayThreePhoto}
+                      alt={index === 1 ? "PJ and Jedah embrace beside a lake framed by snowy mountains" : "PJ photographs Jedah as snow falls around them"}
+                      sizes="(max-width: 640px) 80vw, 560px"
+                      className="mt-4 h-auto w-full max-w-[560px] rounded-2xl"
+                    />
                   )}
                   {events.length > 0 && (
                     <ol className="mt-4 flex flex-wrap gap-2.5">
