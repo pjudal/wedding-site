@@ -69,11 +69,11 @@ export const faqs: { q: string; a: string }[] = [
 export const weddingTabs = [
   { href: "/", label: "Home" },
   { href: "/our-story", label: "Our Firsts Together" },
+  { href: "/photos", label: "Us, Lately" },
+  { href: "/dress-code", label: "Dress Code" },
   { href: "/travel", label: "Pack Your Bags" },
   { href: "/things-to-do", label: "While You're Here" },
-  { href: "/photos", label: "Us, Lately" },
   { href: "/wedding-party", label: "By Our Side" },
-  { href: "/dress-code", label: "Dress Code" },
   { href: "/faq", label: "FAQs" },
   { href: "/rsvp", label: "RSVP" },
 ] as const;
