@@ -14,7 +14,7 @@ import { Reveal } from "./Reveal";
 function Card({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="h-full rounded-3xl bg-cream p-7 shadow-[0_10px_40px_-20px_rgba(38,56,74,0.35)] ring-1 ring-dusk-100 md:p-8">
-      <h2 className="font-serif text-3xl font-semibold leading-tight text-dusk-500 sm:text-4xl">
+      <h2 className="font-serif text-2xl font-semibold leading-tight text-dusk-500 sm:text-3xl">
         <span className="box-decoration-clone bg-linear-to-t from-butter-200 from-30% to-transparent to-30% px-1">
           {label}
         </span>
@@ -99,7 +99,7 @@ export function Details() {
                 <li key={date} className="relative">
                   <span aria-hidden="true" className="absolute -left-[31px] top-1.5 size-3 rounded-full bg-butter-400 ring-4 ring-cream sm:-left-[39px]" />
                   <p className="text-xs font-semibold uppercase tracking-widest text-dusk-600">{date}</p>
-                  <h3 className="mt-1 font-serif text-3xl font-semibold leading-tight text-dusk-500 sm:text-4xl">{title}</h3>
+                  <h3 className="mt-1 font-serif text-2xl font-semibold leading-tight text-dusk-500 sm:text-3xl">{title}</h3>
                   {note && <p className="mt-2 leading-relaxed text-dusk-700">{note}</p>}
                   {index === 0 && (
                     <figure className="mt-4 max-w-80">
@@ -107,7 +107,7 @@ export function Details() {
                         src={dayOnePhoto}
                         alt="Sunset over the sea reflected in Bulod’s pool"
                         sizes="(max-width: 420px) 75vw, 320px"
-                        className="h-auto w-full rounded-2xl"
+                        className="aspect-square w-full rounded-2xl object-cover object-[center_75%]"
                       />
                       <figcaption className="mt-2 text-xs text-dusk-700">
                         <a href="https://www.instagram.com/p/DV8QwB7k8Ha/" className="underline underline-offset-4">Photo by Bulod</a>
