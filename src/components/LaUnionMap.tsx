@@ -114,7 +114,11 @@ export function LaUnionMap() {
                 aria-label={`${place.name} on Google Maps`}
               >
                 <Image src={photos[place.id].image} alt={photos[place.id].alt} sizes="(min-width: 1024px) 300px, 36vw" className="aspect-[16/10] w-full object-cover" />
-                <h2 className="px-2 pt-2 font-serif text-lg leading-none text-dusk-900 sm:px-3 sm:text-2xl">{place.name}</h2>
+                <h2 className="px-2 pt-2 font-serif text-lg leading-tight text-dusk-500 sm:px-3 sm:text-2xl">
+                  <span className="box-decoration-clone bg-linear-to-t from-butter-200 from-30% to-transparent to-30% px-0.5">
+                    {place.name}
+                  </span>
+                </h2>
                 <span className="block px-2 pb-2 pt-1 text-xs text-dusk-700 underline underline-offset-2 sm:px-3">Google Maps</span>
               </a>
               <a href={place.photoCredit.href} className="block border-t border-dusk-100 px-2 py-1.5 text-[11px] text-dusk-700 sm:px-3">
