@@ -96,7 +96,29 @@ export const weddingPages = {
 
 export const rsvpMessageLabel = "A message for us or a wedding hashtag idea";
 
-export const laUnionFavorites = ["Alpas", "The Coffee Library", "Gefseis Greek Grill"];
+export const laUnionFavorites = [
+  {
+    id: "alpas",
+    name: "Alpas",
+    coordinates: [16.7377571, 120.3414815],
+    mapsUrl: "https://www.google.com/maps/search/?api=1&query=Alpas+Coffee+and+Plant+Studio%2C+Bacnotan%2C+La+Union",
+    photoCredit: { name: "leeart", href: "https://ecency.com/hive-163772/%40leeart/peeocpws" },
+  },
+  {
+    id: "coffee",
+    name: "The Coffee Library",
+    coordinates: [16.656314, 120.32114],
+    mapsUrl: "https://www.google.com/maps/search/?api=1&query=The+Coffee+Library+San+Juan%2C+La+Union&query_place_id=ChIJbxXFr-qNkTMRwcGcDMLtdRw",
+    photoCredit: { name: "xyzAsia", href: "https://www.xyzasia.com/home/best-philippines-road-trips-circumnavigation-north-luzon" },
+  },
+  {
+    id: "gefseis",
+    name: "Gefseis Greek Grill",
+    coordinates: [16.656273, 120.320411],
+    mapsUrl: "https://www.google.com/maps/search/?api=1&query=Gefseis+Greek+Grill%2C+Urbiztondo+Beach%2C+San+Juan%2C+La+Union&query_place_id=ChIJ81OuSZWNkTMRGJV39WTPNwU",
+    photoCredit: { name: "When In Manila", href: "https://www.wheninmanila.com/gefseis-greek-grill-authentic-greek-cuisine-la-union/" },
+  },
+] as const;
 
 export const travelTips = [
   {

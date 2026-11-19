@@ -3,8 +3,9 @@ import { DressCode } from "@/components/DressCode";
 import { Faq } from "@/components/Faq";
 import { Rsvp } from "@/components/Rsvp";
 import { SectionHeading } from "@/components/SectionHeading";
+import { LaUnionMap } from "@/components/LaUnionMap";
 import { Stay } from "@/components/Stay";
-import { firsts, laUnionFavorites, travelTips, weddingPages } from "@/content";
+import { firsts, travelTips, weddingPages } from "@/content";
 
 export function generateStaticParams() {
   return Object.keys(weddingPages).map((section) => ({ section }));
@@ -61,15 +62,7 @@ export default async function WeddingPage({ params }: PageProps<"/[section]">) {
           </ol>
         )}
 
-        {section === "things-to-do" && (
-          <ul className="mt-12 grid gap-4 sm:grid-cols-3">
-            {laUnionFavorites.map((name) => (
-              <li key={name} className="rounded-2xl border border-dusk-100 bg-white p-6 text-center font-serif text-3xl text-dusk-900">
-                {name}
-              </li>
-            ))}
-          </ul>
-        )}
+        {section === "things-to-do" && <LaUnionMap />}
       </div>
       {section === "travel" && (
         <>
