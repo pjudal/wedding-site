@@ -19,10 +19,8 @@ export default async function WeddingPage({ params }: PageProps<"/[section]">) {
 
   if (section === "dress-code") {
     return (
-      <main className="min-h-[70svh] px-4 pb-16 pt-28 md:pb-24 md:pt-36">
-        <div className="mx-auto max-w-5xl">
-          <DressCode />
-        </div>
+      <main className="min-h-[70svh]">
+        <DressCode />
       </main>
     );
   }

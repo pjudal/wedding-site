@@ -13,8 +13,8 @@ const illustrations = {
 
 export function DressCode() {
   return (
-    <section aria-labelledby="dress-code">
-      <header className="text-center">
+    <section aria-labelledby="dress-code" className="bg-dusk-500 pb-16 md:pb-24">
+      <header className="bg-butter-200 px-4 pb-12 pt-28 text-center md:pb-14 md:pt-36">
         <h1 id="dress-code" className="scroll-mt-20 font-serif text-4xl italic leading-none text-dusk-900 sm:text-6xl">
           {detailHeadings.dressCode}
         </h1>
@@ -22,58 +22,60 @@ export function DressCode() {
         <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-dusk-700 sm:text-base">{site.dressCode}</p>
       </header>
 
-      <div className="mx-auto mt-8 grid max-w-2xl gap-6 text-center sm:grid-cols-[1fr_2fr]">
-        <div>
-          <h2 className="mb-3 font-serif text-2xl italic text-dusk-700">Entourage</h2>
-          <GuestPalette entourage />
-        </div>
-        <div>
-          <h2 className="mb-3 font-serif text-2xl italic text-dusk-700">Guests</h2>
-          <GuestPalette showGuestShades />
-        </div>
-      </div>
-
-      <div className="mt-10 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_13rem]">
-        <div className="grid gap-10">
-          {outfitIdeas.map(({ title, description }) => (
-            <article key={title} className="border-t border-dusk-200 pt-5">
-              <h2 className="font-serif text-4xl italic text-dusk-700">{title}</h2>
-              <p className="mt-2 max-w-xl text-sm leading-relaxed text-dusk-700">{description}</p>
-              <Image
-                src={illustrations[title].image}
-                alt={illustrations[title].alt}
-                sizes="(min-width: 1060px) 780px, (min-width: 1024px) 76vw, 100vw"
-                className="mt-4 h-auto w-full mix-blend-multiply"
-              />
-            </article>
-          ))}
-        </div>
-
-        <aside aria-labelledby="attire-avoid" className="grid gap-8">
-          <figure className="hidden lg:block">
-            <Image
-              src={bulodPool}
-              alt="Bulod’s pool and guest rooms overlooking the sea"
-              sizes="208px"
-              className="aspect-[4/5] w-full rotate-3 border-8 border-white object-cover shadow-md"
-            />
-            <figcaption className="mt-3 text-center text-xs text-dusk-700">Photos by Bulod</figcaption>
-          </figure>
-          <div className="rounded-2xl border border-butter-200 bg-butter-50 p-6">
-            <h2 id="attire-avoid" className="font-serif text-3xl italic text-dusk-900">Avoid</h2>
-            <ul className="mt-3 grid grid-cols-2 gap-2 text-sm text-dusk-700 md:grid-cols-1">
-              {attireToAvoid.map((item) => (
-                <li key={item} className="py-2">{item}</li>
-              ))}
-            </ul>
+      <div className="mx-auto max-w-5xl px-4 pt-8 md:pt-10">
+        <div className="mx-auto grid max-w-2xl gap-6 rounded-2xl bg-cream px-4 py-6 text-center sm:grid-cols-[1fr_2fr] sm:px-6">
+          <div>
+            <h2 className="mb-3 font-serif text-2xl italic text-dusk-700">Entourage</h2>
+            <GuestPalette entourage />
           </div>
-          <Image
-            src={bulodSunset}
-            alt="Sunset over the sea reflected in Bulod’s pool"
-            sizes="208px"
-            className="hidden aspect-square w-full -rotate-3 border-8 border-white object-cover object-[center_75%] shadow-md lg:block"
-          />
-        </aside>
+          <div>
+            <h2 className="mb-3 font-serif text-2xl italic text-dusk-700">Guests</h2>
+            <GuestPalette showGuestShades />
+          </div>
+        </div>
+
+        <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_13rem]">
+          <div className="grid gap-10">
+            {outfitIdeas.map(({ title, description }) => (
+              <article key={title} className="isolate rounded-2xl bg-cream p-4 sm:p-6">
+                <h2 className="font-serif text-4xl italic text-dusk-700">{title}</h2>
+                <p className="mt-2 max-w-xl text-sm leading-relaxed text-dusk-700">{description}</p>
+                <Image
+                  src={illustrations[title].image}
+                  alt={illustrations[title].alt}
+                  sizes="(min-width: 1024px) 704px, (min-width: 640px) calc(100vw - 5rem), calc(100vw - 4rem)"
+                  className="mt-4 h-auto w-full mix-blend-multiply"
+                />
+              </article>
+            ))}
+          </div>
+
+          <aside aria-labelledby="attire-avoid" className="grid gap-8">
+            <figure className="hidden lg:block">
+              <Image
+                src={bulodPool}
+                alt="Bulod’s pool and guest rooms overlooking the sea"
+                sizes="208px"
+                className="aspect-[4/5] w-full rotate-3 border-8 border-white object-cover shadow-md"
+              />
+              <figcaption className="mx-auto mt-3 w-fit rounded-full bg-cream px-3 py-1 text-xs text-dusk-700">Photos by Bulod</figcaption>
+            </figure>
+            <div className="rounded-2xl bg-butter-200 p-6">
+              <h2 id="attire-avoid" className="font-serif text-3xl italic text-dusk-900">Avoid</h2>
+              <ul className="mt-3 grid grid-cols-2 gap-2 text-sm text-dusk-700 md:grid-cols-1">
+                {attireToAvoid.map((item) => (
+                  <li key={item} className="py-2">{item}</li>
+                ))}
+              </ul>
+            </div>
+            <Image
+              src={bulodSunset}
+              alt="Sunset over the sea reflected in Bulod’s pool"
+              sizes="208px"
+              className="hidden aspect-square w-full -rotate-3 border-8 border-white object-cover object-[center_75%] shadow-md lg:block"
+            />
+          </aside>
+        </div>
       </div>
     </section>
   );
