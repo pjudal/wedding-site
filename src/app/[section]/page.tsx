@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { DressCode } from "@/components/DressCode";
 import { Faq } from "@/components/Faq";
 import { Rsvp } from "@/components/Rsvp";
 import { Stay } from "@/components/Stay";
@@ -13,6 +14,16 @@ export default async function WeddingPage({ params }: PageProps<"/[section]">) {
   if (!Object.hasOwn(weddingPages, section)) notFound();
 
   const page = weddingPages[section as keyof typeof weddingPages];
+
+  if (section === "dress-code") {
+    return (
+      <main className="min-h-[70svh] px-4 pb-16 pt-28 md:pb-24 md:pt-36">
+        <div className="mx-auto max-w-5xl">
+          <DressCode />
+        </div>
+      </main>
+    );
+  }
 
   if (section === "faq") {
     return (

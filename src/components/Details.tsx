@@ -1,5 +1,5 @@
-import Image from "next/image";
-import { detailHeadings, outfitIdeas, site, weddingTimeline } from "@/content";
+import Link from "next/link";
+import { detailHeadings, saveTheDate, site, weddingTimeline, weddingTimelineIntro } from "@/content";
 import { Reveal } from "./Reveal";
 import { SectionHeading } from "./SectionHeading";
 
@@ -22,7 +22,7 @@ export function Details() {
           <Reveal>
             <Card label={detailHeadings.date}>
               <p className="font-serif text-3xl leading-tight">{site.weddingDateLabel}</p>
-              <p className="mt-2 text-dusk-700">{site.ceremonyTimeLabel} · Unplugged ceremony</p>
+              <p className="mt-2 text-dusk-700">{saveTheDate}</p>
               <a
                 href="/calendar.ics"
                 className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-dusk-700 underline decoration-butter-400 decoration-2 underline-offset-4 hover:text-dusk-950"
@@ -60,17 +60,22 @@ export function Details() {
 
         <Reveal delay={0.1} className="mt-5">
           <Card label={detailHeadings.timeline}>
-            <ol className="grid gap-6 md:grid-cols-[1fr_1.6fr_1fr]">
-              {weddingTimeline.map(({ date, note, events }) => (
-                <li key={date} className="rounded-2xl bg-dusk-50 p-5">
-                  <h4 className="font-serif text-2xl text-dusk-900">{date}</h4>
-                  {note && <p className="mt-3 text-sm leading-relaxed text-dusk-700">{note}</p>}
+            <p className="max-w-2xl font-serif text-2xl leading-snug text-dusk-900 md:text-3xl">
+              {weddingTimelineIntro}
+            </p>
+            <ol className="ml-2 mt-8 space-y-8 border-l border-dusk-200 pl-6 sm:ml-3 sm:pl-8">
+              {weddingTimeline.map(({ date, title, note, events }) => (
+                <li key={date} className="relative">
+                  <span aria-hidden="true" className="absolute -left-[31px] top-1.5 size-3 rounded-full bg-butter-400 ring-4 ring-cream sm:-left-[39px]" />
+                  <p className="text-xs font-semibold uppercase tracking-widest text-dusk-600">{date}</p>
+                  <h4 className="mt-1 font-serif text-3xl text-dusk-900">{title}</h4>
+                  {note && <p className="mt-2 leading-relaxed text-dusk-700">{note}</p>}
                   {events.length > 0 && (
-                    <ol className="mt-3 divide-y divide-dusk-100">
+                    <ol className="mt-4 flex flex-wrap gap-2.5">
                       {events.map(({ label, time }) => (
-                        <li key={label} className="grid grid-cols-[5.5rem_1fr] items-baseline gap-2 py-2">
-                          <span className="text-sm font-semibold text-dusk-700">{time}</span>
-                          <span className="font-serif text-xl leading-tight">{label}</span>
+                        <li key={label} className="rounded-xl bg-dusk-50 px-4 py-3">
+                          <span className="block text-xs font-semibold text-dusk-600">{time}</span>
+                          <span className="font-serif text-xl text-dusk-900">{label}</span>
                         </li>
                       ))}
                     </ol>
@@ -82,40 +87,11 @@ export function Details() {
         </Reveal>
 
         <Reveal delay={0.1} className="mt-5">
-          <div className="rounded-3xl bg-dusk-50 p-7 ring-1 ring-dusk-100 md:p-8">
-            <h3 id="dress-code" className="scroll-mt-20 text-xs font-semibold uppercase tracking-[0.2em] text-dusk-500">
-              {detailHeadings.dressCode}
-            </h3>
-            <p className="mt-3 font-serif text-2xl">{site.dressCode}</p>
-            <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-4" aria-label="Guest color palette">
-              {site.guestPalette.map(({ name, hex }) => (
-                <li key={name} className="flex min-w-16 flex-col items-center gap-2 text-xs text-dusk-700">
-                  <span
-                    aria-hidden="true"
-                    className="block size-12 rounded-full shadow-inner ring-1 ring-dusk-900/10"
-                    style={{ background: hex }}
-                  />
-                  {name}
-                </li>
-              ))}
-            </ul>
-            <div className="mt-7 grid gap-4 sm:grid-cols-2">
-              {outfitIdeas.map(({ title, image, alt, looks }) => (
-                <div key={title} className="rounded-2xl bg-white/70 p-5">
-                  <h4 className="font-serif text-2xl">{title}</h4>
-                  <Image
-                    src={image}
-                    alt={alt}
-                    sizes="(min-width: 1152px) 500px, (min-width: 640px) 45vw, 90vw"
-                    className="mt-3 h-auto w-full rounded-xl"
-                  />
-                  <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-dusk-700">
-                    {looks.map((look) => <li key={look}>{look}</li>)}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
+          <Card label={detailHeadings.dressCode}>
+            <Link href="/dress-code" className="text-sm font-semibold text-dusk-700 underline underline-offset-4 hover:text-dusk-950">
+              See the dress code and outfit ideas
+            </Link>
+          </Card>
         </Reveal>
       </div>
     </section>

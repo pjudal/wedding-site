@@ -1,6 +1,3 @@
-import womenOutfits from "@/assets/beach-outfits-women.webp";
-import menOutfits from "@/assets/beach-outfits-men.webp";
-
 // Everything guests read lives in this file. Edit wording here, not in the components.
 // Anything marked TODO is not confirmed yet - fill it in (or remove it) before launch.
 
@@ -34,7 +31,7 @@ export const site = {
   venueSummary: "From the ceremony to the reception, we’ll be together right here at Bulod.",
   mapsEmbedUrl: "https://maps.google.com/maps?q=16.4326284%2C120.3354622&z=16&output=embed",
 
-  dressCode: "Dress up for the beach in light, breathable pastels. Airy or floral dresses and lightweight collared polos with chinos are welcome. Please skip heavy gowns and save blue and yellow for the entourage.",
+  dressCode: "Dress up for the beach in light, breathable pastels. Blue and yellow are reserved for the entourage.",
   guestPalette: [
     { name: "Blush pink", hex: "#EEC5D1" },
     { name: "Peach", hex: "#F5CBB6" },
@@ -43,6 +40,8 @@ export const site = {
     { name: "Soft sage", hex: "#C7D4B8" },
   ],
 };
+
+export const attireToAvoid = ["White", "Jeans", "Shorts", "Polo shirts"];
 
 export const faqs: { q: string; a: string }[] = [
   {
@@ -59,7 +58,7 @@ export const faqs: { q: string; a: string }[] = [
   },
   {
     q: "What should I wear?",
-    a: site.dressCode,
+    a: `${site.dressCode} Airy or floral dresses and lightweight button-downs with chinos are welcome. Please avoid ${attireToAvoid.map((item) => item.toLowerCase()).join(", ")}.`,
   },
 ];
 
@@ -70,6 +69,7 @@ export const weddingTabs = [
   { href: "/things-to-do", label: "While You're Here" },
   { href: "/photos", label: "Us, Lately" },
   { href: "/wedding-party", label: "By Our Side" },
+  { href: "/dress-code", label: "Dress Code" },
   { href: "/faq", label: "FAQs" },
   { href: "/rsvp", label: "RSVP" },
 ] as const;
@@ -85,6 +85,7 @@ export const weddingPages = {
   "things-to-do": { title: "While You're Here", intro: "A few of our favorite spots in La Union." },
   photos: { title: "Us, Lately", intro: "Photos coming soon." },
   "wedding-party": { title: "By Our Side", intro: "Meet our entourage here soon." },
+  "dress-code": { title: "Dress Code" },
   faq: { title: "FAQs" },
   rsvp: { title: "RSVP" },
 };
@@ -113,14 +114,21 @@ export const detailHeadings = {
   dressCode: "Look good, feel good ;)",
 };
 
+export const dressCodeTagline = "Come as you are (but make it cute!)";
+
+export const saveTheDate = "Save the date. We’d love to see you there!";
+export const weddingTimelineIntro = "Our wedding is one day, but we’d love to spend the whole weekend celebrating with you.";
+
 export const weddingTimeline = [
   {
     date: "Saturday, March 20",
+    title: "Ease into the weekend",
     note: "If you’re joining us a day early, settle in and take it easy by the beach.",
     events: [],
   },
   {
     date: "Sunday, March 21",
+    title: "The wedding day",
     events: [
       { label: "Welcome Brunch", time: "10:00 AM" },
       { label: "Unplugged Ceremony", time: site.ceremonyTimeLabel },
@@ -131,29 +139,26 @@ export const weddingTimeline = [
   },
   {
     date: "Monday, March 22",
+    title: "Until next time",
     events: [{ label: "Time to Go Home", time: "12:00 noon" }],
   },
 ];
 
 export const outfitIdeas = [
   {
-    title: "For women",
-    image: womenOutfits,
-    alt: "Three airy beach wedding dresses in blush pink, lilac floral, and soft sage.",
-    looks: [
-      "An airy blush pink midi dress with flat sandals",
-      "A lightweight lilac floral midi dress with dressy flats",
-      "A flowy soft sage maxi dress with flat sandals",
+    title: "Ladies",
+    description: "Choose an airy midi or maxi dress in a pastel or floral print. Lightweight fabrics and dressy flats or sandals are great for the beach. Please skip heavy gowns.",
+    references: [
+      { label: "Wedding guest outfit", href: "https://ph.pinterest.com/pin/950189221398741114/" },
+      { label: "Semi-formal guest attire", href: "https://ph.pinterest.com/pin/1083960204093097258/" },
     ],
   },
   {
-    title: "For men",
-    image: menOutfits,
-    alt: "Three lightweight collared polos in peach, lilac, and sage paired with chinos and loafers.",
-    looks: [
-      "A peach short-sleeve polo with stone chinos",
-      "A lightweight lilac knit polo with light gray chinos",
-      "A soft sage collared polo with tan chinos and loafers",
+    title: "Men",
+    description: "Wear a lightweight button-down with tailored chinos and loafers. Linen and breathable cotton are good choices.",
+    references: [
+      { label: "Light neutrals for men", href: "https://ph.pinterest.com/pin/533817362104563456/" },
+      { label: "Beach wedding attire for men", href: "https://ph.pinterest.com/pin/375065475236717219/" },
     ],
   },
 ];
