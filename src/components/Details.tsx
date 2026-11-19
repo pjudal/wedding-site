@@ -16,7 +16,7 @@ import { Reveal } from "./Reveal";
 function Card({ label, children, photo = false }: { label: string; children: React.ReactNode; photo?: boolean }) {
   return (
     <div className="flex h-full flex-col rounded-3xl bg-cream p-7 shadow-[0_10px_40px_-20px_rgba(38,56,74,0.35)] ring-1 ring-dusk-100 md:p-8">
-      <h2 className="font-sans text-2xl font-medium leading-tight text-dusk-500 sm:text-3xl">
+      <h2 className="font-sans text-xl font-medium leading-tight text-dusk-500 sm:text-2xl">
         <span className="box-decoration-clone bg-linear-to-t from-butter-200 from-30% to-transparent to-30% px-1">
           {label}
         </span>
@@ -162,10 +162,10 @@ export function Details() {
 
         <Reveal delay={0.1} className="mt-5">
           <Card label={detailHeadings.dressCode}>
-            <p className="max-w-xl text-sm leading-relaxed text-dusk-700">{homepageAttireNote}</p>
+            <p className="text-sm leading-relaxed text-dusk-700">{homepageAttireNote}</p>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <figure className="rounded-2xl bg-cream p-4 text-center">
-                <figcaption className="font-serif text-3xl italic text-dusk-900">Entourage</figcaption>
+                <figcaption className="font-serif text-2xl italic text-dusk-900">Entourage</figcaption>
                 <Image
                   src={entourageAttire}
                   alt="Watercolor outfits in dusty blue and pastel yellow, with airy dresses, closed-toe flats, and a linen vest with chinos"
@@ -175,7 +175,7 @@ export function Details() {
                 <GuestPalette entourage />
               </figure>
               <figure className="rounded-2xl bg-cream p-4 text-center">
-                <figcaption className="font-serif text-3xl italic text-dusk-900">Guests</figcaption>
+                <figcaption className="font-serif text-2xl italic text-dusk-900">Guests</figcaption>
                 <Image
                   src={guestAttire}
                   alt="Watercolor outfits in blush, sage, lilac and peach, with airy dresses and lightweight button-downs with chinos"

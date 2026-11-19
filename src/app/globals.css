@@ -73,3 +73,29 @@ body:has(dialog[open]) {
 .welcome-sand-note {
   transform: rotate(-8deg) skewX(-5deg);
 }
+
+.palette-swatch {
+  position: relative;
+  transform: rotate(-4deg);
+  clip-path: polygon(
+    2% 7%, 12% 3%, 17% 6%, 25% 2%, 32% 5%, 41% 2%, 48% 5%,
+    57% 2%, 65% 5%, 74% 2%, 82% 5%, 91% 2%, 97% 6%,
+    98% 23%, 96% 34%, 99% 49%, 97% 61%, 99% 76%, 96% 93%,
+    87% 97%, 81% 94%, 72% 98%, 64% 95%, 55% 98%, 47% 95%,
+    38% 98%, 30% 95%, 22% 98%, 15% 94%, 7% 97%, 2% 92%,
+    3% 76%, 1% 64%, 3% 50%, 1% 36%, 3% 22%
+  );
+}
+
+li:nth-child(even) > .palette-swatch {
+  transform: rotate(3deg);
+}
+
+.palette-swatch::after {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 2px, rgb(255 255 255 / 25%) 2px 3px),
+    repeating-linear-gradient(90deg, transparent 0 2px, rgb(38 56 74 / 9%) 2px 3px);
+  content: "";
+}
