@@ -67,9 +67,9 @@ export function Hero() {
           transition={{ duration: 1, delay: 0.9, ease }}
           className="mt-5 font-serif text-xl italic text-dusk-900 sm:text-2xl"
         >
-          {site.weddingDateLabel}
+          {site.heroDateLabel}
           <span className="mx-2 not-italic text-butter-500">&#10022;</span>
-          {site.venueName}, {site.venueArea}
+          {site.venueArea}
         </motion.p>
 
         <motion.div

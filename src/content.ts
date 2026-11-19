@@ -1,3 +1,6 @@
+import womenOutfits from "@/assets/beach-outfits-women.webp";
+import menOutfits from "@/assets/beach-outfits-men.webp";
+
 // Everything guests read lives in this file. Edit wording here, not in the components.
 // Anything marked TODO is not confirmed yet - fill it in (or remove it) before launch.
 
@@ -9,6 +12,7 @@ export const site = {
   // Philippine time (UTC+8). Midnight is used only for the countdown.
   weddingDate: "2027-03-21T00:00:00+08:00",
   weddingDateLabel: "Sunday, March 21, 2027",
+  heroDateLabel: "21 March 2027",
   shortDate: "03.21.27",
 
   venueName: "Bulod",
@@ -25,22 +29,18 @@ export const site = {
   nightBeforeDeadlineLabel: "January 10, 2027",
   nightBeforeLabel: "Saturday, March 20",
 
-  // TODO: times are not set yet. Leave "TBA" until they are.
-  schedule: [
-    { label: "Guest arrival", time: "TBA" },
-    { label: "Ceremony", time: "TBA" },
-    { label: "Reception", time: "TBA" },
-  ],
+  ceremonyTimeLabel: "4:30 PM",
+  venueLocality: "Caba, La Union",
+  venueSummary: "From the ceremony to the reception, we’ll be together right here at Bulod.",
+  mapsEmbedUrl: "https://maps.google.com/maps?q=16.4326284%2C120.3354622&z=16&output=embed",
 
-  // TODO: dress code. null shows "Details coming soon".
-  dressCode: null as string | null,
-
-  palette: [
-    { name: "Dusty blue", hex: "#6F8FAF" },
-    { name: "Soft blue", hex: "#A9BFD4" },
-    { name: "Pastel yellow", hex: "#F2D675" },
-    { name: "Butter", hex: "#F8E9A8" },
-    { name: "Cream", hex: "#FCFAF4" },
+  dressCode: "Dress up for the beach in light, breathable pastels. Airy or floral dresses and lightweight collared polos with chinos are welcome. Please skip heavy gowns and save blue and yellow for the entourage.",
+  guestPalette: [
+    { name: "Blush pink", hex: "#EEC5D1" },
+    { name: "Peach", hex: "#F5CBB6" },
+    { name: "Lilac", hex: "#DCC9EC" },
+    { name: "Mint", hex: "#C8E7D4" },
+    { name: "Soft sage", hex: "#C7D4B8" },
   ],
 };
 
@@ -59,7 +59,7 @@ export const faqs: { q: string; a: string }[] = [
   },
   {
     q: "What should I wear?",
-    a: "Dress code details are coming soon. Our wedding colors are dusty blue and pastel yellow.",
+    a: site.dressCode,
   },
 ];
 
@@ -103,5 +103,57 @@ export const travelTips = [
     title: "Taking the bus from Manila",
     text: "Look for a Manila departure bound for San Fernando, La Union. Confirm the terminal, schedule, and drop-off with the bus operator, then arrange a ride from the drop-off to Bulod and share the venue pin with your driver.",
     link: { href: site.mapsUrl, label: "Open the Bulod venue pin" },
+  },
+];
+
+export const detailHeadings = {
+  date: "When We Say “I Do”",
+  venue: "Where forever begins",
+  timeline: "How the Day Unfolds",
+  dressCode: "Look good, feel good ;)",
+};
+
+export const weddingTimeline = [
+  {
+    date: "Saturday, March 20",
+    note: "If you’re joining us a day early, settle in and take it easy by the beach.",
+    events: [],
+  },
+  {
+    date: "Sunday, March 21",
+    events: [
+      { label: "Welcome Brunch", time: "10:00 AM" },
+      { label: "Unplugged Ceremony", time: site.ceremonyTimeLabel },
+      { label: "Cocktail Hour", time: "5:30 PM" },
+      { label: "Program", time: "7:00 PM" },
+      { label: "Reception", time: "8:00 PM" },
+    ],
+  },
+  {
+    date: "Monday, March 22",
+    events: [{ label: "Time to Go Home", time: "12:00 noon" }],
+  },
+];
+
+export const outfitIdeas = [
+  {
+    title: "For women",
+    image: womenOutfits,
+    alt: "Three airy beach wedding dresses in blush pink, lilac floral, and soft sage.",
+    looks: [
+      "An airy blush pink midi dress with flat sandals",
+      "A lightweight lilac floral midi dress with dressy flats",
+      "A flowy soft sage maxi dress with flat sandals",
+    ],
+  },
+  {
+    title: "For men",
+    image: menOutfits,
+    alt: "Three lightweight collared polos in peach, lilac, and sage paired with chinos and loafers.",
+    looks: [
+      "A peach short-sleeve polo with stone chinos",
+      "A lightweight lilac knit polo with light gray chinos",
+      "A soft sage collared polo with tan chinos and loafers",
+    ],
   },
 ];
