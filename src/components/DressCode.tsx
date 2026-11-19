@@ -1,3 +1,4 @@
+import { GuestPalette } from "./GuestPalette";
 import { attireToAvoid, detailHeadings, dressCodeTagline, outfitIdeas, site } from "@/content";
 
 export function DressCode() {
@@ -11,18 +12,9 @@ export function DressCode() {
         <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-dusk-700 sm:text-base">{site.dressCode}</p>
       </div>
 
-      <ul className="mx-auto my-7 grid max-w-md grid-cols-5 gap-1 sm:gap-4" aria-label="Guest color palette">
-        {site.guestPalette.map(({ name, hex }) => (
-          <li key={name} className="flex min-w-0 flex-col items-center gap-2 text-center text-xs leading-tight text-dusk-700">
-            <span
-              aria-hidden="true"
-              className="block size-8 rounded-full shadow-inner ring-1 ring-dusk-900/10 sm:size-12"
-              style={{ background: hex }}
-            />
-            {name}
-          </li>
-        ))}
-      </ul>
+      <div className="mx-auto my-7 max-w-md">
+        <GuestPalette />
+      </div>
 
       <div className="grid gap-6 border-t border-dusk-200 pt-7 md:grid-cols-[2fr_1fr] md:items-start">
         <div className="divide-y divide-dusk-200">

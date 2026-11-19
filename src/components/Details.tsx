@@ -1,12 +1,18 @@
+import Image from "next/image";
 import Link from "next/link";
-import { detailHeadings, saveTheDate, site, weddingTimeline, weddingTimelineIntro } from "@/content";
+import bulodEntrance from "@/assets/bulod-entrance.webp";
+import bulodPool from "@/assets/bulod-pool.webp";
+import { detailHeadings, homepageAttireNote, saveTheDate, site, weddingTimeline, weddingTimelineIntro } from "@/content";
+import entourageAttire from "@/assets/attire-entourage.webp";
+import guestAttire from "@/assets/attire-guests.webp";
+import dayOnePhoto from "@/assets/timeline-day-1.webp";
+import { GuestPalette } from "./GuestPalette";
 import { Reveal } from "./Reveal";
-import { SectionHeading } from "./SectionHeading";
 
 function Card({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="h-full rounded-3xl bg-white/70 p-7 shadow-[0_10px_40px_-20px_rgba(38,56,74,0.35)] ring-1 ring-dusk-100 md:p-8">
-      <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-dusk-500">{label}</h3>
+      <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-dusk-500">{label}</h2>
       <div className="mt-4">{children}</div>
     </div>
   );
@@ -14,9 +20,8 @@ function Card({ label, children }: { label: string; children: React.ReactNode })
 
 export function Details() {
   return (
-    <section id="details" className="px-4 py-20 md:py-28">
+    <section id="details" className="px-4 pb-20 pt-12 md:pb-28 md:pt-16">
       <div className="mx-auto max-w-6xl">
-        <SectionHeading eyebrow="Join us" title="The Day" />
 
         <div className="grid gap-5 md:grid-cols-2">
           <Reveal>
@@ -38,6 +43,26 @@ export function Details() {
                 {site.venueName}, {site.venueLocality}
               </p>
               <p className="mt-3 text-dusk-700">{site.venueSummary}</p>
+              <figure className="mt-5">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                  <Image
+                    src={bulodEntrance}
+                    alt="Sunlight on the Bulod entrance sign beside the pool"
+                    sizes="(min-width: 1152px) 245px, (min-width: 768px) 24vw, 44vw"
+                    className="aspect-[4/3] w-full rounded-xl object-cover"
+                  />
+                  <Image
+                    src={bulodPool}
+                    alt="Bulod’s pool and guest rooms overlooking the sea"
+                    sizes="(min-width: 1152px) 245px, (min-width: 768px) 24vw, 44vw"
+                    className="aspect-[4/3] w-full rounded-xl object-cover"
+                  />
+                </div>
+                <figcaption className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-dusk-700">
+                  <a href="https://bulod.ph/" className="underline underline-offset-4">Photos by Bulod</a>
+                  <a href="https://www.instagram.com/p/DbhkkkVE8vC/" className="underline underline-offset-4">See Bulod on Instagram</a>
+                </figcaption>
+              </figure>
               <iframe
                 src={site.mapsEmbedUrl}
                 title={`Google Maps location of ${site.venueName}, ${site.venueLocality}`}
@@ -64,12 +89,25 @@ export function Details() {
               {weddingTimelineIntro}
             </p>
             <ol className="ml-2 mt-8 space-y-8 border-l border-dusk-200 pl-6 sm:ml-3 sm:pl-8">
-              {weddingTimeline.map(({ date, title, note, events }) => (
+              {weddingTimeline.map(({ date, title, note, events }, index) => (
                 <li key={date} className="relative">
                   <span aria-hidden="true" className="absolute -left-[31px] top-1.5 size-3 rounded-full bg-butter-400 ring-4 ring-cream sm:-left-[39px]" />
                   <p className="text-xs font-semibold uppercase tracking-widest text-dusk-600">{date}</p>
-                  <h4 className="mt-1 font-serif text-3xl text-dusk-900">{title}</h4>
+                  <h3 className="mt-1 font-serif text-3xl text-dusk-900">{title}</h3>
                   {note && <p className="mt-2 leading-relaxed text-dusk-700">{note}</p>}
+                  {index === 0 && (
+                    <figure className="mt-4 max-w-80">
+                      <Image
+                        src={dayOnePhoto}
+                        alt="An orange sunset at Bulod"
+                        sizes="(max-width: 420px) 75vw, 320px"
+                        className="h-auto w-full rounded-2xl"
+                      />
+                      <figcaption className="mt-2 text-xs text-dusk-700">
+                        <a href="https://www.instagram.com/p/DV8QwB7k8Ha/" className="underline underline-offset-4">Photo by Bulod</a>
+                      </figcaption>
+                    </figure>
+                  )}
                   {events.length > 0 && (
                     <ol className="mt-4 flex flex-wrap gap-2.5">
                       {events.map(({ label, time }) => (
@@ -88,7 +126,30 @@ export function Details() {
 
         <Reveal delay={0.1} className="mt-5">
           <Card label={detailHeadings.dressCode}>
-            <Link href="/dress-code" className="text-sm font-semibold text-dusk-700 underline underline-offset-4 hover:text-dusk-950">
+            <p className="max-w-xl text-sm leading-relaxed text-dusk-700">{homepageAttireNote}</p>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              <figure className="rounded-2xl bg-cream p-4 text-center">
+                <figcaption className="font-serif text-3xl italic text-dusk-900">Entourage</figcaption>
+                <Image
+                  src={entourageAttire}
+                  alt="Watercolor outfits in dusty blue and pastel yellow, with airy dresses, closed-toe flats, and a linen vest with chinos"
+                  className="mx-auto mb-3 mt-2 h-52 w-full object-contain sm:h-64"
+                  sizes="(min-width: 640px) 40vw, 80vw"
+                />
+                <GuestPalette entourage />
+              </figure>
+              <figure className="rounded-2xl bg-cream p-4 text-center">
+                <figcaption className="font-serif text-3xl italic text-dusk-900">Guests</figcaption>
+                <Image
+                  src={guestAttire}
+                  alt="Watercolor outfits in blush, sage, lilac and peach, with airy dresses and lightweight button-downs with chinos"
+                  className="mx-auto mb-3 mt-2 h-52 w-full object-contain sm:h-64"
+                  sizes="(min-width: 640px) 40vw, 80vw"
+                />
+                <GuestPalette />
+              </figure>
+            </div>
+            <Link href="/dress-code" className="mt-4 inline-block text-sm font-semibold text-dusk-700 underline underline-offset-4 hover:text-dusk-950">
               See the dress code and outfit ideas
             </Link>
           </Card>

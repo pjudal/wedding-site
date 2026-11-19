@@ -32,6 +32,10 @@ export const site = {
   mapsEmbedUrl: "https://maps.google.com/maps?q=16.4326284%2C120.3354622&z=16&output=embed",
 
   dressCode: "Dress up for the beach in light, breathable pastels. Blue and yellow are reserved for the entourage.",
+  entouragePalette: [
+    { name: "Dusty blue", hex: "#92A8BC" },
+    { name: "Pastel yellow", hex: "#F4E3A3" },
+  ],
   guestPalette: [
     { name: "Blush pink", hex: "#EEC5D1" },
     { name: "Peach", hex: "#F5CBB6" },
@@ -114,10 +118,12 @@ export const detailHeadings = {
   dressCode: "Look good, feel good ;)",
 };
 
+export const homepageAttireNote = "Think airy dresses or lightweight button-downs with chinos, and shoes you’ll be comfortable in by the beach.";
+
 export const dressCodeTagline = "Come as you are (but make it cute!)";
 
 export const saveTheDate = "Save the date. We’d love to see you there!";
-export const weddingTimelineIntro = "Our wedding is one day, but we’d love to spend the whole weekend celebrating with you.";
+export const weddingTimelineIntro = "We’ll say “I do” on Sunday, and we’d love to spend the weekend by the sea with you.";
 
 export const weddingTimeline = [
   {
