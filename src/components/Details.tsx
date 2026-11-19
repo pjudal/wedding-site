@@ -113,7 +113,7 @@ export function Details() {
 
         <Reveal delay={0.1} className="mt-5">
           <Card label={detailHeadings.timeline}>
-            <p className="max-w-2xl font-serif text-2xl leading-snug text-dusk-900 md:text-3xl">
+            <p className="max-w-2xl font-serif text-2xl leading-snug text-dusk-900 md:text-3xl lg:max-w-none">
               {weddingTimelineIntro}
             </p>
             <ol className="ml-2 mt-8 space-y-8 border-l border-dusk-200 pl-6 sm:ml-3 sm:pl-8">

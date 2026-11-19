@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { DressCode } from "@/components/DressCode";
 import { Faq } from "@/components/Faq";
 import { Rsvp } from "@/components/Rsvp";
+import { SectionHeading } from "@/components/SectionHeading";
 import { Stay } from "@/components/Stay";
 import { firsts, laUnionFavorites, travelTips, weddingPages } from "@/content";
 
@@ -69,22 +70,30 @@ export default async function WeddingPage({ params }: PageProps<"/[section]">) {
             ))}
           </ul>
         )}
-
-        {section === "travel" && (
-          <div className="mt-12 grid gap-4 md:grid-cols-2">
-            {travelTips.map(({ title, text, link }) => (
-              <article key={title} className="rounded-2xl border border-dusk-100 bg-white p-6">
-                <h2 className="font-serif text-3xl text-dusk-900">{title}</h2>
-                <p className="mt-2 leading-relaxed text-dusk-700">{text}</p>
-                <a href={link.href} className="mt-4 inline-block text-sm font-semibold text-dusk-700 underline underline-offset-4">
-                  {link.label}
-                </a>
-              </article>
-            ))}
-          </div>
-        )}
       </div>
-      {section === "travel" && <Stay />}
+      {section === "travel" && (
+        <>
+          <section id="getting-there" className="border-t border-dusk-100">
+            <div className="bg-dusk-700 px-5 pt-14 md:pt-20">
+              <div className="flow-root">
+                <SectionHeading eyebrow="Travel Guide" title="Getting There" light />
+              </div>
+            </div>
+            <div className="mx-auto grid max-w-5xl gap-4 px-5 py-10 md:grid-cols-2 md:px-8 md:py-14">
+              {travelTips.map(({ title, text, link }) => (
+                <article key={title} className="rounded-2xl border border-dusk-100 bg-white p-6">
+                  <h3 className="font-serif text-3xl text-dusk-500">{title}</h3>
+                  <p className="mt-2 leading-relaxed text-dusk-700">{text}</p>
+                  <a href={link.href} className="mt-4 inline-block text-sm font-semibold text-dusk-700 underline underline-offset-4">
+                    {link.label}
+                  </a>
+                </article>
+              ))}
+            </div>
+          </section>
+          <Stay />
+        </>
+      )}
     </main>
   );
 }
