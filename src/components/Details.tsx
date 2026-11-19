@@ -16,7 +16,7 @@ import { Reveal } from "./Reveal";
 function Card({ label, children, photo = false }: { label: string; children: React.ReactNode; photo?: boolean }) {
   return (
     <div className="flex h-full flex-col rounded-3xl bg-cream p-7 shadow-[0_10px_40px_-20px_rgba(38,56,74,0.35)] ring-1 ring-dusk-100 md:p-8">
-      <h2 className="font-sans text-2xl font-semibold leading-tight text-dusk-500 sm:text-3xl">
+      <h2 className="font-sans text-2xl font-medium leading-tight text-dusk-500 sm:text-3xl">
         <span className="box-decoration-clone bg-linear-to-t from-butter-200 from-30% to-transparent to-30% px-1">
           {label}
         </span>
