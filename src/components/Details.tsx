@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import bulodEntrance from "@/assets/bulod-entrance.webp";
 import bulodPool from "@/assets/bulod-pool.webp";
+import engagementProposal from "@/assets/engagement-proposal.webp";
+import engagementRing from "@/assets/engagement-ring.webp";
 import { detailHeadings, homepageAttireNote, saveTheDate, site, weddingTimeline, weddingTimelineIntro } from "@/content";
 import entourageAttire from "@/assets/attire-entourage.webp";
 import guestAttire from "@/assets/attire-guests.webp";
@@ -11,15 +13,15 @@ import dayThreePhoto from "@/assets/timeline-day-3.webp";
 import { GuestPalette } from "./GuestPalette";
 import { Reveal } from "./Reveal";
 
-function Card({ label, children }: { label: string; children: React.ReactNode }) {
+function Card({ label, children, photo = false }: { label: string; children: React.ReactNode; photo?: boolean }) {
   return (
-    <div className="h-full rounded-3xl bg-cream p-7 shadow-[0_10px_40px_-20px_rgba(38,56,74,0.35)] ring-1 ring-dusk-100 md:p-8">
-      <h2 className="font-serif text-2xl font-semibold leading-tight text-dusk-500 sm:text-3xl">
+    <div className="flex h-full flex-col rounded-3xl bg-cream p-7 shadow-[0_10px_40px_-20px_rgba(38,56,74,0.35)] ring-1 ring-dusk-100 md:p-8">
+      <h2 className="font-sans text-2xl font-semibold leading-tight text-dusk-500 sm:text-3xl">
         <span className="box-decoration-clone bg-linear-to-t from-butter-200 from-30% to-transparent to-30% px-1">
           {label}
         </span>
       </h2>
-      <div className="mt-4">{children}</div>
+      <div className={photo ? "mt-4 flex flex-1 flex-col items-start" : "mt-4"}>{children}</div>
     </div>
   );
 }
@@ -31,15 +33,35 @@ export function Details() {
 
         <div className="grid gap-5 md:grid-cols-2">
           <Reveal>
-            <Card label={detailHeadings.date}>
+            <Card label={detailHeadings.date} photo>
               <p className="font-serif text-3xl leading-tight">{site.weddingDateLabel}</p>
-              <p className="mt-2 text-dusk-700">{saveTheDate}</p>
               <a
                 href="/calendar.ics"
                 className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-dusk-700 underline decoration-butter-400 decoration-2 underline-offset-4 hover:text-dusk-950"
               >
                 Add to calendar
               </a>
+              <div className="mt-6 grid w-full gap-3 md:min-h-[25rem] md:flex-1 md:grid-rows-[4fr_auto_5fr]">
+                <div className="relative aspect-[4/3] overflow-hidden rounded-2xl md:aspect-auto">
+                  <Image
+                    src={engagementProposal}
+                    alt="PJ down on one knee proposing to Jedah beneath a leafy arch"
+                    fill
+                    sizes="(min-width: 1152px) 500px, (min-width: 768px) 45vw, 90vw"
+                    className="object-cover object-[center_79%]"
+                  />
+                </div>
+                <p className="text-dusk-700">{saveTheDate}</p>
+                <div className="relative aspect-[3/2] overflow-hidden rounded-2xl md:aspect-auto">
+                  <Image
+                    src={engagementRing}
+                    alt="Jedah shows her engagement ring as she and PJ smile together"
+                    fill
+                    sizes="(min-width: 1152px) 500px, (min-width: 768px) 45vw, 90vw"
+                    className="object-cover object-[center_65%]"
+                  />
+                </div>
+              </div>
             </Card>
           </Reveal>
 
