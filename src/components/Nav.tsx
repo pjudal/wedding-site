@@ -2,15 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { site } from "@/content";
-
-const links = [
-  { href: "#details", label: "The Day" },
-  { href: "#stay", label: "Stay" },
-  { href: "#faq", label: "FAQ" },
-];
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { site, weddingTabs } from "@/content";
 
 export function Nav() {
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -24,38 +21,35 @@ export function Nav() {
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
-        scrolled || open ? "bg-cream/85 shadow-[0_1px_0_rgba(38,56,74,0.08)] backdrop-blur-md" : "bg-transparent"
+        pathname !== "/" || scrolled || open ? "bg-cream/85 shadow-[0_1px_0_rgba(38,56,74,0.08)] backdrop-blur-md" : "bg-transparent"
       }`}
     >
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 md:px-8">
-        <a href="#top" className="font-serif text-2xl font-medium tracking-wide text-dusk-900">
+        <Link href="/" aria-label="Wedding home" onClick={() => setOpen(false)} className="font-serif text-2xl font-medium tracking-wide text-dusk-900">
           {site.coupleA[0]}
           <span className="mx-1 italic text-dusk-500">&amp;</span>
           {site.coupleB[0]}
-        </a>
+        </Link>
 
-        <div className="hidden items-center gap-8 md:flex">
-          {links.map((l) => (
-            <a
+        <div className="hidden items-center gap-5 lg:flex">
+          {weddingTabs.map((l) => (
+            <Link
               key={l.href}
               href={l.href}
-              className="text-sm font-medium tracking-wide text-dusk-700 transition-colors hover:text-dusk-950"
+              aria-current={pathname === l.href ? "page" : undefined}
+              className={l.href === "/rsvp"
+                ? "rounded-full bg-butter-400 px-5 py-2 text-sm font-semibold text-dusk-950 shadow-sm transition hover:bg-butter-500"
+                : "text-sm font-medium text-dusk-700 transition-colors hover:text-dusk-950 aria-[current=page]:underline aria-[current=page]:underline-offset-4"}
             >
               {l.label}
-            </a>
+            </Link>
           ))}
-          <a
-            href="#rsvp"
-            className="rounded-full bg-butter-400 px-5 py-2 text-sm font-semibold text-dusk-950 shadow-sm transition hover:bg-butter-500"
-          >
-            RSVP
-          </a>
         </div>
 
-        <div className="flex items-center gap-2 md:hidden">
-          <a href="#rsvp" className="rounded-full bg-butter-400 px-4 py-1.5 text-sm font-semibold text-dusk-950">
+        <div className="flex items-center gap-2 lg:hidden">
+          <Link href="/rsvp" onClick={() => setOpen(false)} className="rounded-full bg-butter-400 px-4 py-1.5 text-sm font-semibold text-dusk-950">
             RSVP
-          </a>
+          </Link>
           <button
             type="button"
             aria-label={open ? "Close menu" : "Open menu"}
@@ -81,18 +75,19 @@ export function Nav() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden md:hidden"
+            className="overflow-hidden lg:hidden"
           >
             <div className="flex flex-col px-4 pb-4">
-              {links.map((l) => (
-                <a
+              {weddingTabs.map((l) => (
+                <Link
                   key={l.href}
                   href={l.href}
+                  aria-current={pathname === l.href ? "page" : undefined}
                   onClick={() => setOpen(false)}
-                  className="border-b border-dusk-100 py-3 font-serif text-2xl text-dusk-900"
+                  className="border-b border-dusk-100 py-3 font-serif text-2xl text-dusk-900 aria-[current=page]:font-semibold"
                 >
                   {l.label}
-                </a>
+                </Link>
               ))}
             </div>
           </motion.div>

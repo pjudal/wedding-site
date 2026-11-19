@@ -13,15 +13,16 @@ export const site = {
 
   venueName: "Bulod",
   venueArea: "La Union",
-  // TODO: swap for the venue's exact Google Maps link once you have it.
-  mapsUrl: "https://www.google.com/maps/search/?api=1&query=Bulod%2C+La+Union",
+  mapsUrl: "https://www.google.com/maps/place/Bulod+La+Union/@16.4326335,120.3328873,17z/data=!3m1!4b1!4m6!3m5!1s0x33918300d5e55647:0x7b83f228836e65ab!8m2!3d16.4326284!4d120.3354622!16s%2Fg%2F11mrhr1xy2",
+  drivingDirectionsUrl: "https://www.google.com/maps/dir/?api=1&origin=Manila%2C+Philippines&destination=16.4326284%2C120.3354622&travelmode=driving",
 
   // TODO: tentative. Responses are blocked after this moment (Philippine time).
   rsvpDeadline: "2027-01-15T23:59:59+08:00",
   rsvpDeadlineLabel: "January 15, 2027",
 
-  // TODO: per person or per room? And how do guests pay it?
-  nightBeforePrice: "Php 2,000",
+  // TODO: confirm payment instructions.
+  nightBeforePrice: "₱2,000 per person",
+  nightBeforeDeadlineLabel: "January 10, 2027",
   nightBeforeLabel: "Saturday, March 20",
 
   // TODO: times are not set yet. Leave "TBA" until they are.
@@ -54,10 +55,51 @@ export const faqs: { q: string; a: string }[] = [
   },
   {
     q: "Where will I stay?",
-    a: `Your room on the wedding day is on us. If you'd like to arrive early, you can stay the night before (${site.nightBeforeLabel}) for ${site.nightBeforePrice}. Just let us know in your RSVP.`,
+    a: `Rooms are at Bulod, and we’ll give you your room assignment when you arrive. We cover your stay on the wedding day. To stay the night before (${site.nightBeforeLabel}) for ${site.nightBeforePrice}, please confirm in your RSVP by ${site.nightBeforeDeadlineLabel}.`,
   },
   {
     q: "What should I wear?",
     a: "Dress code details are coming soon. Our wedding colors are dusty blue and pastel yellow.",
+  },
+];
+
+export const weddingTabs = [
+  { href: "/", label: "Home" },
+  { href: "/our-story", label: "Our Firsts Together" },
+  { href: "/travel", label: "Pack Your Bags" },
+  { href: "/things-to-do", label: "While You're Here" },
+  { href: "/photos", label: "Us, Lately" },
+  { href: "/wedding-party", label: "By Our Side" },
+  { href: "/rsvp", label: "RSVP" },
+] as const;
+
+export const firsts: { title: string; story?: string }[] = [
+  { title: "Our first concert" },
+  { title: "Our first international trip" },
+];
+
+export const weddingPages = {
+  "our-story": { title: "Our Firsts Together" },
+  travel: { title: "Pack Your Bags", intro: "From Manila to Bulod, La Union. The ceremony, reception, and after-party will all take place at Bulod." },
+  "things-to-do": { title: "While You're Here", intro: "A few of our favorite spots in La Union." },
+  photos: { title: "Us, Lately", intro: "Photos coming soon." },
+  "wedding-party": { title: "By Our Side", intro: "Meet our entourage here soon." },
+  rsvp: { title: "RSVP" },
+};
+
+export const rsvpMessageLabel = "A message for us or a wedding hashtag idea";
+
+export const laUnionFavorites = ["Alpas", "The Coffee Library", "Gefseis Greek Grill"];
+
+export const travelTips = [
+  {
+    title: "Driving from Manila",
+    text: "Head north via NLEX, SCTEX, and TPLEX toward La Union, then follow the directions to the Bulod venue pin. Set your exact starting point in Maps before leaving.",
+    link: { href: site.drivingDirectionsUrl, label: "Get driving directions from Manila" },
+  },
+  {
+    title: "Taking the bus from Manila",
+    text: "Look for a Manila departure bound for San Fernando, La Union. Confirm the terminal, schedule, and drop-off with the bus operator, then arrange a ride from the drop-off to Bulod and share the venue pin with your driver.",
+    link: { href: site.mapsUrl, label: "Open the Bulod venue pin" },
   },
 ];

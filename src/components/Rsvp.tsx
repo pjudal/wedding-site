@@ -2,7 +2,7 @@
 
 import { useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { site } from "@/content";
+import { rsvpMessageLabel, site } from "@/content";
 import { SectionHeading } from "./SectionHeading";
 
 type YesNo = "" | "yes" | "no";
@@ -205,7 +205,7 @@ export function Rsvp() {
                             <span className="text-sm">
                               <span className="font-semibold">I&rsquo;ll also stay the night before</span>
                               <span className="block text-dusk-700">
-                                {site.nightBeforeLabel} · {site.nightBeforePrice}
+                                {site.nightBeforeLabel} · {site.nightBeforePrice} · Confirm by {site.nightBeforeDeadlineLabel}
                               </span>
                             </span>
                           </label>
@@ -230,7 +230,7 @@ export function Rsvp() {
 
                 <div>
                   <label htmlFor="rsvp-message" className="mb-1.5 block text-sm font-semibold">
-                    A note for us <span className="font-normal text-dusk-500">(optional)</span>
+                    {rsvpMessageLabel} <span className="font-normal text-dusk-500">(optional)</span>
                   </label>
                   <textarea
                     id="rsvp-message"
@@ -239,7 +239,7 @@ export function Rsvp() {
                     className={inputCls}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Song requests, well wishes, anything!"
+                    placeholder="Hashtag ideas, song requests, or well wishes"
                   />
                 </div>
 
