@@ -1,4 +1,6 @@
 import Image from "next/image";
+import entourageAttire from "@/assets/attire-entourage.webp";
+import guestAttire from "@/assets/attire-guests.webp";
 import ladiesLooks from "@/assets/attire-ladies-looks.webp";
 import menLooks from "@/assets/attire-men-looks.webp";
 import { GuestPalette } from "./GuestPalette";
@@ -21,13 +23,25 @@ export function DressCode() {
       </header>
 
       <div className="mx-auto max-w-5xl px-4 pt-8 md:pt-10">
-        <div className="mx-auto grid max-w-2xl gap-6 rounded-2xl bg-cream px-4 py-6 text-center sm:grid-cols-[1fr_2fr] sm:px-6">
+        <div className="isolate mx-auto grid max-w-2xl gap-8 rounded-2xl bg-cream px-4 py-6 text-center sm:grid-cols-[1fr_2fr] sm:px-6">
           <div>
             <h2 className="mb-3 font-serif text-2xl italic text-dusk-700">Entourage</h2>
+            <Image
+              src={entourageAttire}
+              alt="Watercolor outfits in dusty blue and pastel yellow, with airy dresses, closed-toe flats, and a linen vest with chinos"
+              className="mx-auto mb-4 h-48 w-auto object-contain sm:h-56"
+              sizes="200px"
+            />
             <GuestPalette entourage />
           </div>
           <div>
             <h2 className="mb-3 font-serif text-2xl italic text-dusk-700">Guests</h2>
+            <Image
+              src={guestAttire}
+              alt="Watercolor outfits in blush, sage, lilac and peach, with airy dresses and lightweight button-downs with chinos"
+              className="mx-auto mb-4 h-48 w-auto object-contain mix-blend-multiply sm:h-56"
+              sizes="224px"
+            />
             <GuestPalette showGuestShades />
           </div>
         </div>

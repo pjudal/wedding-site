@@ -5,6 +5,7 @@ import { Faq } from "@/components/Faq";
 import { Rsvp } from "@/components/Rsvp";
 import { SectionHeading } from "@/components/SectionHeading";
 import { LaUnionMap } from "@/components/LaUnionMap";
+import { Schedule } from "@/components/Schedule";
 import { Stay } from "@/components/Stay";
 import { firsts, travelTips, weddingPages } from "@/content";
 
@@ -17,6 +18,8 @@ export default async function WeddingPage({ params }: PageProps<"/[section]">) {
   if (!Object.hasOwn(weddingPages, section)) notFound();
 
   const page = weddingPages[section as keyof typeof weddingPages];
+
+  if (section === "schedule") return <Schedule title={page.title} />;
 
   if (section === "dress-code") {
     return (

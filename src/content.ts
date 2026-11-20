@@ -29,7 +29,6 @@ export const site = {
   ceremonyTimeLabel: "4:30 PM",
   venueLocality: "Caba, La Union",
   venueSummary: "From the ceremony to the reception, we’ll be together right here at Bulod.",
-  mapsEmbedUrl: "https://maps.google.com/maps?q=16.4326284%2C120.3354622&z=16&output=embed",
 
   dressCode: "Dress up for the beach in light, breathable pastels. Blue and yellow are reserved for the entourage.",
   entouragePalette: [
@@ -72,6 +71,7 @@ export const faqs: { q: string; a: string }[] = [
 
 export const weddingTabs = [
   { href: "/", label: "Home" },
+  { href: "/schedule", label: "Schedule" },
   { href: "/our-story", label: "Firsts & Favorites" },
   { href: "/photos", label: "Us, Lately" },
   { href: "/dress-code", label: "Dress Code" },
@@ -88,6 +88,7 @@ export const firsts: { title: string; story?: string }[] = [
 ];
 
 export const weddingPages = {
+  schedule: { title: "Schedule" },
   "our-story": { title: "Firsts & Favorites" },
   travel: { title: "Pack Your Bags", intro: "From Manila to Bulod, La Union. The ceremony, reception, and after-party will all take place at Bulod." },
   "things-to-do": { title: "While You're Here", intro: "A few of our favorite spots in La Union." },
@@ -144,23 +145,23 @@ export const detailHeadings = {
   dressCode: "Look good, feel good ;)",
 };
 
-export const homepageAttireNote = "Think airy dresses or lightweight button-downs with chinos, and shoes you’ll be comfortable in by the beach.";
 
 export const dressCodeTagline = "Come as you are (but make it cute!)";
 
 export const saveTheDate = "Save the date. We’d love to see you there!";
-export const weddingTimelineIntro = "We’ll say “I do” on Sunday, but we’d love to spend the weekend by the sea with you.";
+export const weddingTimelineIntro = "Sunday’s the big day, but we’d love to spend the weekend by the sea with you.";
 
 export const weddingTimeline = [
   {
     date: "Saturday, March 20",
     title: "Ease into the weekend",
     note: "If you’re joining us a day early, settle in and take it easy by the beach.",
-    events: [],
+    events: [{ label: "Settle in by the sea", time: "2:00 PM" }],
   },
   {
     date: "Sunday, March 21",
     title: "The wedding day",
+    note: "Come hungry for brunch, then join us for seaside vows, dinner, and dancing.",
     events: [
       { label: "Welcome Brunch", time: "10:00 AM" },
       { label: "Unplugged Ceremony", time: site.ceremonyTimeLabel },
@@ -173,7 +174,7 @@ export const weddingTimeline = [
     date: "Monday, March 22",
     title: "Until next time",
     note: "Take it slow this morning. You’ve still got half the day to enjoy La Union before heading home.",
-    events: [{ label: "Wrap up at Bulod", time: "12:00 noon" }],
+    events: [{ label: "Wrap up at Bulod", time: "12:00 PM" }],
   },
 ];
 
