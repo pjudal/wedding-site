@@ -50,7 +50,7 @@ export function Hero() {
           <div aria-hidden="true" className="wedding-banner-track flex w-max min-w-[200%] motion-reduce:hidden">
             {[0, 1].map((copy) => (
               <div key={copy} className="flex grow shrink-0 items-center justify-around">
-                {Array.from({ length: 6 }, (_, index) => (
+                {Array.from({ length: 20 }, (_, index) => (
                   <div key={index} className="wedding-banner-phrase flex shrink-0 items-center gap-4 whitespace-nowrap px-3 py-3 font-serif text-lg font-semibold sm:text-xl">
                     We’re getting married <span className="text-dusk-700">♥</span>
                   </div>
