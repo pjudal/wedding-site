@@ -43,14 +43,26 @@ export function Hero() {
         style={{ opacity: fade }}
         className="relative z-10 flex h-full flex-col items-center px-4 pt-24 text-center sm:pt-28"
       >
-        <motion.p
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.3, ease }}
-          className="text-xs font-semibold uppercase tracking-[0.35em] text-dusk-700"
-        >
-          We&rsquo;re getting married
-        </motion.p>
+        <div className="wedding-banner relative w-full max-w-xl overflow-hidden rounded-full bg-butter-200 text-dusk-900">
+          <p className="font-serif text-2xl font-semibold motion-safe:sr-only motion-reduce:py-1 motion-reduce:text-center">
+            We’re getting married
+          </p>
+          <label className="absolute inset-y-0 right-0 z-10 flex items-center gap-1.5 border-l border-dusk-900/15 bg-butter-200 px-3 text-xs motion-reduce:hidden">
+            <input type="checkbox" aria-label="Pause banner" className="accent-dusk-900" />
+            Pause
+          </label>
+          <div aria-hidden="true" className="wedding-banner-track flex w-max motion-reduce:hidden">
+            {[0, 1].map((copy) => (
+              <div key={copy} className="flex shrink-0 items-center">
+                {Array.from({ length: 6 }, (_, index) => (
+                  <div key={index} className="wedding-banner-phrase flex shrink-0 items-center gap-4 whitespace-nowrap px-3 py-3 font-serif text-lg font-semibold sm:text-xl">
+                    We’re getting married <span className="text-dusk-700">♥</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
 
         <motion.h1
           initial={{ opacity: 0, y: 20 }}

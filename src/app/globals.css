@@ -99,3 +99,25 @@ li:nth-child(even) > .palette-swatch {
     repeating-linear-gradient(90deg, transparent 0 2px, rgb(38 56 74 / 9%) 2px 3px);
   content: "";
 }
+
+.wedding-banner-phrase {
+  transform: translateY(-4px) rotate(-5deg);
+}
+
+.wedding-banner-phrase:nth-child(even) {
+  transform: translateY(4px) rotate(5deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-banner-track {
+    animation: wedding-banner-scroll 32s linear infinite;
+  }
+
+  .wedding-banner:has(input:checked) .wedding-banner-track {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes wedding-banner-scroll {
+  to { transform: translateX(-50%); }
+}
