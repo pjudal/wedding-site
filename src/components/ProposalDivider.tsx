@@ -4,7 +4,7 @@ export function ProposalDivider() {
       viewBox="0 0 640 140"
       role="img"
       aria-label="Jedah gives PJ two donuts. Eleven dots lead to PJ kneeling to propose to Jedah."
-      className="mx-auto mt-12 block h-auto w-full max-w-3xl text-cream sm:mt-16"
+      className="mx-auto mt-12 block h-auto w-full max-w-3xl text-cream sm:mt-16 lg:mt-5 lg:max-w-xl"
     >
       <defs>
         <filter id="proposal-chalk" x="-5%" y="-10%" width="110%" height="120%">

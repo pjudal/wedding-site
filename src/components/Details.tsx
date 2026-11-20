@@ -20,18 +20,18 @@ export function Details() {
 
   return (
     <div id="details" className="scroll-mt-18">
-      <section className="bg-dusk-500 px-5 py-14 sm:px-10 lg:px-[6vw] lg:py-20">
-        <Reveal className="mx-auto grid max-w-[110rem] items-center gap-10 px-3 lg:grid-cols-[minmax(0,1fr)_minmax(15rem,0.68fr)_minmax(0,1fr)] lg:gap-8">
+      <section className="bg-dusk-500 px-5 py-14 sm:px-10 lg:px-[6vw] lg:py-9">
+        <Reveal className="mx-auto grid max-w-[110rem] items-center gap-10 px-3 lg:grid-cols-[minmax(0,1fr)_clamp(24rem,39vw,46rem)_minmax(0,1fr)] lg:gap-10">
           <div className="text-center text-black lg:col-start-2 lg:row-start-1">
             <h2 className="font-sans text-xl font-medium leading-tight sm:text-2xl">
               <span className="inline-block rounded-md bg-butter-200 px-3 py-1 text-dusk-950">{detailHeadings.date}</span>
             </h2>
-            <p className={`${handwriting.className} mt-3 text-2xl leading-tight sm:text-3xl`}>
+            <p className="mt-4 font-typewriter text-base font-bold leading-snug sm:text-lg">
               The two donuts back in 2015 paid off!
             </p>
-            <p className="mt-4 font-serif text-[clamp(2rem,3.35vw,3.75rem)] font-semibold leading-none text-white [text-shadow:0_1px_3px_#26384a]">
+            <p className="mt-4 font-serif text-5xl font-semibold leading-none text-white [text-shadow:0_1px_3px_#26384a] sm:text-6xl 2xl:text-8xl">
               <span className="block">{weddingWeekday}</span>
-              <span className="mt-1 block whitespace-nowrap">{weddingDate}</span>
+              <span className="mt-1 block text-[clamp(2.5rem,10vw,3rem)] sm:text-6xl lg:whitespace-nowrap 2xl:text-8xl">{weddingDate}</span>
             </p>
             <a
               href="/calendar.ics"
@@ -39,10 +39,10 @@ export function Details() {
             >
               Add to calendar
             </a>
-            <p className="mt-5 font-serif text-3xl italic leading-tight">{saveTheDate}</p>
+            <p className="mt-5 font-serif text-3xl italic leading-tight lg:whitespace-nowrap lg:text-2xl xl:text-3xl">{saveTheDate}</p>
           </div>
           <div className="mx-auto w-full max-w-2xl lg:col-start-1 lg:row-start-1">
-            <figure className="scrapbook-print relative w-full max-w-lg -rotate-3 lg:w-[83%]">
+            <figure className="scrapbook-print relative w-full max-w-lg -rotate-3 lg:w-[83%] lg:max-w-[min(32rem,30svh)]">
               <Image
                 src={engagementFromThis}
                 alt="An early black-and-white photo of Jedah and PJ"
@@ -51,10 +51,10 @@ export function Details() {
               />
               <figcaption className="scrapbook-tape -rotate-6">from this</figcaption>
             </figure>
-            <svg aria-hidden="true" viewBox="0 0 70 52" className="ml-[45%] my-2 h-12 w-16 text-butter-200" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg aria-hidden="true" viewBox="0 0 70 52" className="ml-[45%] my-2 h-12 w-16 lg:my-1 lg:h-9 text-butter-200" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M7 6c6 17 19 29 50 33m-12-13 13 13-15 6" />
             </svg>
-            <figure className="scrapbook-print relative ml-auto w-3/4 max-w-96 rotate-4 lg:w-[62.25%]">
+            <figure className="scrapbook-print relative ml-auto w-3/4 max-w-96 rotate-4 lg:w-[62.25%] lg:max-w-[min(24rem,22.5svh)]">
               <div className="relative aspect-[3/4]">
                 <Image
                   src={engagementToThis}
@@ -68,8 +68,8 @@ export function Details() {
             </figure>
           </div>
 
-          <div className="mx-auto grid w-full max-w-2xl gap-8 lg:col-start-3 lg:row-start-1">
-            <figure className="scrapbook-print relative w-full max-w-lg rotate-3 lg:w-[83%]">
+          <div className="mx-auto grid w-full max-w-2xl gap-8 lg:col-start-3 lg:gap-5 lg:row-start-1">
+            <figure className="scrapbook-print relative w-full max-w-lg rotate-3 lg:w-[83%] lg:max-w-[min(32rem,30svh)]">
               <div className="relative aspect-[4/3]">
                 <Image
                   src={engagementProposal}
@@ -81,7 +81,7 @@ export function Details() {
               </div>
               <figcaption className="scrapbook-tape -rotate-8">the proposal</figcaption>
             </figure>
-            <figure className="scrapbook-print relative ml-auto w-full max-w-lg -rotate-4 lg:w-[83%]">
+            <figure className="scrapbook-print relative ml-auto w-full max-w-lg -rotate-4 lg:w-[83%] lg:max-w-[min(32rem,30svh)]">
               <div className="relative aspect-[4/3]">
                 <Image
                   src={engagementRing}

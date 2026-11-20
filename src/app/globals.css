@@ -14,6 +14,7 @@
   --color-butter-200: #f8e9a8;
   --color-butter-50: #fdf8e4;
   --color-cream: #fcfaf4;
+  --font-typewriter: "Courier New", monospace;
 }
 
 @theme inline {
@@ -140,7 +141,7 @@ li:nth-child(even) > .palette-swatch {
   padding: 0.32rem 0.95rem;
   background: var(--color-cream);
   color: var(--color-dusk-950);
-  font: 700 0.95rem/1.15 "Courier New", monospace;
+  font: 700 0.95rem/1.15 var(--font-typewriter);
   clip-path: polygon(7% 0, 94% 0, 100% 25%, 100% 73%, 94% 100%, 7% 100%, 0 75%, 0 23%);
 }
 
