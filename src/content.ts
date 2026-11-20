@@ -64,6 +64,10 @@ export const faqs: { q: string; a: string }[] = [
     q: "What should I wear?",
     a: `${site.dressCode} Airy or floral dresses and lightweight button-downs with chinos are welcome. Please avoid ${attireToAvoid.map((item) => item.toLowerCase()).join(", ")}.`,
   },
+  {
+    q: "Can I wear heels?",
+    a: "Yes! Everything from the ceremony to the reception will take place on paved surfaces, so feel free to wear heels if you prefer.",
+  },
 ];
 
 export const weddingTabs = [

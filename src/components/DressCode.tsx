@@ -1,8 +1,6 @@
 import Image from "next/image";
 import ladiesLooks from "@/assets/attire-ladies-looks.webp";
 import menLooks from "@/assets/attire-men-looks.webp";
-import bulodPool from "@/assets/bulod-pool.webp";
-import bulodSunset from "@/assets/timeline-day-1.webp";
 import { GuestPalette } from "./GuestPalette";
 import { attireToAvoid, dressCodeTagline, outfitIdeas, site, weddingPages } from "@/content";
 
@@ -18,7 +16,7 @@ export function DressCode() {
         <h1 id="dress-code" className="scroll-mt-20 font-serif text-5xl text-dusk-900 md:text-7xl">
           {weddingPages["dress-code"].title}
         </h1>
-        <p className="mt-3 font-serif text-2xl italic text-[color-mix(in_srgb,var(--color-dusk-700)_78%,var(--color-dusk-500))]">{dressCodeTagline}</p>
+        <p className="mx-auto mt-3 w-fit max-w-full rounded-full bg-dusk-300 px-5 py-2 font-serif text-2xl italic text-black">{dressCodeTagline}</p>
         <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-dusk-700 sm:text-base">{site.dressCode}</p>
       </header>
 
@@ -50,30 +48,13 @@ export function DressCode() {
             ))}
           </div>
 
-          <aside aria-labelledby="attire-avoid" className="grid gap-8">
-            <figure className="hidden lg:block">
-              <Image
-                src={bulodPool}
-                alt="Bulod’s pool and guest rooms overlooking the sea"
-                sizes="208px"
-                className="aspect-[4/5] w-full rotate-3 border-8 border-white object-cover shadow-md"
-              />
-              <figcaption className="mx-auto mt-3 w-fit rounded-full bg-cream px-3 py-1 text-xs text-dusk-700">Photos by Bulod</figcaption>
-            </figure>
-            <div className="rounded-2xl bg-butter-200 p-6">
-              <h2 id="attire-avoid" className="font-serif text-3xl italic text-dusk-900">Avoid</h2>
-              <ul className="mt-3 grid grid-cols-2 gap-2 text-sm text-dusk-700 md:grid-cols-1">
-                {attireToAvoid.map((item) => (
-                  <li key={item} className="py-2">{item}</li>
-                ))}
-              </ul>
-            </div>
-            <Image
-              src={bulodSunset}
-              alt="Sunset over the sea reflected in Bulod’s pool"
-              sizes="208px"
-              className="hidden aspect-square w-full -rotate-3 border-8 border-white object-cover object-[center_75%] shadow-md lg:block"
-            />
+          <aside aria-labelledby="attire-avoid" className="rounded-2xl bg-butter-200 p-6">
+            <h2 id="attire-avoid" className="font-serif text-3xl italic text-dusk-900">Avoid</h2>
+            <ul className="mt-3 grid grid-cols-2 gap-2 text-sm text-dusk-700 md:grid-cols-1">
+              {attireToAvoid.map((item) => (
+                <li key={item} className="py-2">{item}</li>
+              ))}
+            </ul>
           </aside>
         </div>
       </div>

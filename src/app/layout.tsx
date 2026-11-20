@@ -34,11 +34,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${cormorant.variable} ${manrope.variable} antialiased`}>
-      <body>
+      <body className="flex min-h-dvh flex-col">
         <Providers>
           <Nav />
           {children}
-          <footer className="bg-dusk-900 px-4 py-14 text-center text-dusk-100">
+          <footer className="mt-auto shrink-0 bg-dusk-900 px-4 py-14 text-center text-dusk-100">
             <p className="font-serif text-4xl text-cream">
               {site.coupleA} <span className="italic text-butter-400">&amp;</span> {site.coupleB}
             </p>
