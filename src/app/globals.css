@@ -112,10 +112,6 @@ li:nth-child(even) > .palette-swatch {
   .wedding-banner-track {
     animation: wedding-banner-scroll 32s linear infinite;
   }
-
-  .wedding-banner:has(input:checked) .wedding-banner-track {
-    animation-play-state: paused;
-  }
 }
 
 @keyframes wedding-banner-scroll {

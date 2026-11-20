@@ -87,26 +87,35 @@ export default async function WeddingPage({ params }: PageProps<"/[section]">) {
             <ul className="mx-auto mt-8 grid max-w-4xl gap-x-8 gap-y-5 rounded-2xl border border-dusk-100 bg-white p-6 text-dusk-700 sm:grid-cols-2 sm:p-8">
               <li>
                 <strong className="text-dusk-900">Breathable outfits and comfortable footwear.</strong>{" "}
-                Check out the <Link href="/dress-code" className="font-semibold underline underline-offset-4">Dress Code</Link> for outfit ideas.
+                Go for something breezy and shoes you’ll be happy dancing in. We’ve put a few ideas in the <Link href="/dress-code" className="font-semibold underline underline-offset-4">Dress Code</Link>.
               </li>
               <li>
                 <strong className="text-dusk-900">Swimwear and casual wear.</strong>{" "}
-                Pack extra outfits if you’re staying overnight before or after the wedding.
+                Bring something to swim in and a change of clothes if you’re staying the night before or after.
               </li>
               <li>
                 <strong className="text-dusk-900">Sunscreen.</strong>{" "}
-                Pack sun protection for <strong>hot, sunny, and dry conditions</strong>, which El Niño can intensify in La Union.
+                We’ll be spending time in the sun. El Niño can make La Union’s <strong>hot, sunny, and dry weather</strong> feel even hotter.
               </li>
-              <li><strong className="text-dusk-900">Sunglasses.</strong></li>
-              <li><strong className="text-dusk-900">Hair accessories.</strong></li>
-              <li><strong className="text-dusk-900">Handheld fan,</strong> if you’d like one.</li>
+              <li>
+                <strong className="text-dusk-900">Sunglasses.</strong>{" "}
+                Bring your favorite pair for bright afternoons by the water.
+              </li>
+              <li>
+                <strong className="text-dusk-900">Hair accessories.</strong>{" "}
+                A clip or hair tie comes in handy when the sea breeze picks up.
+              </li>
+              <li>
+                <strong className="text-dusk-900">Handheld fan.</strong>{" "}
+                Toss one in if you like having a little breeze on warm afternoons.
+              </li>
               <li>
                 <strong className="text-dusk-900">Prescription medicine.</strong>{" "}
-                Bring any medication you take regularly. Common over-the-counter medicines will be available at the event.
+                Bring any prescription meds you take. We’ll have some common over-the-counter medicines on hand.
               </li>
               <li>
                 <strong className="text-dusk-900">Water tumbler.</strong>{" "}
-                Bring one if you’d like. Drinking water and glasses will be available at Bulod.
+                Bring one if you like sipping on the go. Bulod will have drinking water and glasses.
               </li>
             </ul>
           </section>
