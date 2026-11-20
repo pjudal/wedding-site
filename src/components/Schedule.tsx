@@ -9,7 +9,7 @@ export function Schedule({ title }: { title: string }) {
     <main className="min-h-dvh bg-dusk-50 px-5 pb-16 pt-28 sm:px-10 md:pt-36 lg:px-[6vw] lg:pb-24">
       <header className="text-center">
         <h1 className="font-serif text-5xl text-dusk-900 md:text-7xl">{title}</h1>
-        <p className="mx-auto mt-4 max-w-4xl font-serif text-2xl leading-snug text-dusk-900 md:text-3xl">
+        <p className="mx-auto mt-4 font-serif text-2xl leading-snug text-dusk-900 md:text-3xl lg:whitespace-nowrap">
           {weddingTimelineIntro}
         </p>
       </header>

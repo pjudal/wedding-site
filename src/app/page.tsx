@@ -9,8 +9,30 @@ export default function Home() {
       <Welcome />
       <Hero />
       <Details />
-      <section aria-labelledby="celebrate-with-us" className="relative bg-butter-50 px-6 pb-16 pt-20 text-center sm:px-12 md:pb-24 md:pt-28">
+      <section aria-labelledby="celebrate-with-us" className="relative bg-butter-50 px-6 pb-16 pt-3 text-center sm:px-12 md:pb-24 md:pt-5">
         <div aria-hidden="true" className="scrapbook-edge absolute inset-x-0 top-0 h-8 bg-dusk-50 sm:h-12" />
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 720 120"
+          className="relative mx-auto mb-5 block h-auto w-full max-w-4xl text-white drop-shadow-[0_1px_1px_var(--color-dusk-500)] sm:mb-8"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M2 13Q45 33 81 40T167 42Q187 39 205 33C243 21 207-10 207 18Q207 39 260 46Q313 56 358 54T447 44C487 36 507 23 500 12C492-4 475 12 481 26Q498 52 548 51Q601 54 639 44T718 12" />
+          {[
+            [81, 40, 9], [167, 42, -9], [260, 46, 8],
+            [358, 54, -5], [447, 44, 10], [548, 51, -7], [639, 44, 12],
+          ].map(([x, y, rotation]) => (
+            <g key={x} transform={`translate(${x} ${y}) rotate(${rotation})`}>
+              <path d="M-6 1h12l1 13H-7Z M-6 5h12m-12 5h12" />
+              <path d="M-7 14C-8 20-19 27-19 39c0 11 8 18 19 18s19-7 19-18C19 27 8 20 7 14" />
+              <path d="M0 15v13m0 13c-4-4-8-6-8-10 0-4 5-5 8-1 3-4 8-3 8 1 0 4-4 6-8 10Z" />
+            </g>
+          ))}
+        </svg>
         <h2 id="celebrate-with-us" className="mx-auto max-w-7xl text-balance font-serif text-5xl font-semibold leading-[0.95] text-dusk-900 sm:text-7xl lg:text-8xl">
           We hope you can celebrate with us!
         </h2>
@@ -28,6 +50,23 @@ export default function Home() {
           </svg>
           <span className="absolute inset-x-0 top-[26%] text-sm font-bold tracking-[0.25em]">RSVP</span>
         </Link>
+        <figure className="mx-auto mt-10 max-w-3xl bg-[#171717] px-3 shadow-lg sm:mt-12 sm:px-5">
+          <div aria-hidden="true" className="closing-film-perforations h-5 sm:h-7" />
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            controls
+            preload="none"
+            poster="/celebrate-film-poster.webp"
+            aria-label="PJ and Jedah together on a mountainside"
+            className="aspect-video w-full bg-black"
+          >
+            <source src="/celebrate-film.mp4" type="video/mp4" />
+          </video>
+          <div aria-hidden="true" className="closing-film-perforations h-5 sm:h-7" />
+        </figure>
       </section>
     </main>
   );

@@ -143,3 +143,7 @@ li:nth-child(even) > .palette-swatch {
   background-image: repeating-linear-gradient(48deg, transparent 0 4px, rgb(255 255 255 / 25%) 4px 6px);
   clip-path: polygon(2% 0, 98% 4%, 96% 23%, 100% 39%, 96% 56%, 100% 72%, 97% 100%, 2% 96%, 4% 78%, 0 61%, 4% 43%, 0 25%);
 }
+
+.closing-film-perforations {
+  background: radial-gradient(ellipse 6px 4px at center, var(--color-butter-50) 88%, transparent 100%) center / 24px 100% repeat-x;
+}

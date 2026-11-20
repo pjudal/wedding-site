@@ -31,7 +31,7 @@ export function SchedulePreview() {
       <h2 className="font-sans text-xl font-medium text-dusk-700 sm:text-2xl">
         <span className="bg-linear-to-t from-butter-200 from-30% to-transparent to-30% px-1">{detailHeadings.timeline}</span>
       </h2>
-      <p className="mx-auto mt-4 max-w-4xl font-serif text-2xl leading-snug text-dusk-900 md:text-3xl">
+      <p className="mx-auto mt-4 font-serif text-2xl leading-snug text-dusk-900 md:text-3xl lg:whitespace-nowrap">
         {weddingTimelineIntro}
       </p>
       <div className="mx-auto mt-8 grid max-w-6xl gap-8 lg:grid-cols-[1fr_4fr_1fr] lg:gap-0">
