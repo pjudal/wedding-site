@@ -129,3 +129,17 @@ li:nth-child(even) > .palette-swatch {
   padding-bottom: clamp(1.15rem, 3vw, 2.5rem);
   box-shadow: 0 6px 20px rgb(29 43 57 / 24%);
 }
+
+.scrapbook-tape {
+  position: absolute;
+  z-index: 1;
+  top: -0.65rem;
+  left: 50%;
+  translate: -50% 0;
+  width: max-content;
+  padding: 0.2rem 0.85rem;
+  font-size: 1.25rem;
+  line-height: 1.45;
+  background-image: repeating-linear-gradient(48deg, transparent 0 4px, rgb(255 255 255 / 25%) 4px 6px);
+  clip-path: polygon(2% 0, 98% 4%, 96% 23%, 100% 39%, 96% 56%, 100% 72%, 97% 100%, 2% 96%, 4% 78%, 0 61%, 4% 43%, 0 25%);
+}

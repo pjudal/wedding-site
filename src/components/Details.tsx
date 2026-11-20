@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Caveat } from "next/font/google";
 import bulodEntrance from "@/assets/bulod-entrance.webp";
 import bulodBackdrop from "@/assets/bulod-venue-backdrop.webp";
 import bulodPool from "@/assets/bulod-pool.webp";
@@ -13,6 +14,9 @@ import dayTwoPhoto from "@/assets/timeline-day-2.webp";
 import dayThreePhoto from "@/assets/timeline-day-3.webp";
 import { GuestPalette } from "./GuestPalette";
 import { Reveal } from "./Reveal";
+import { ProposalDivider } from "./ProposalDivider";
+
+const handwriting = Caveat({ subsets: ["latin"], weight: "600" });
 
 function DetailHeading({ children, light = false }: { children: React.ReactNode; light?: boolean }) {
   return (
@@ -27,52 +31,57 @@ function DetailHeading({ children, light = false }: { children: React.ReactNode;
 export function Details() {
   return (
     <div id="details" className="scroll-mt-18">
-      <section className="bg-cream px-5 py-12 sm:px-10 lg:px-[6vw] lg:py-20">
-        <Reveal>
-          <div className="mx-auto max-w-2xl text-center">
-            <DetailHeading>{detailHeadings.date}</DetailHeading>
+      <section className="bg-dusk-500 px-5 py-14 sm:px-10 lg:px-[6vw] lg:py-20">
+        <Reveal className="mx-auto grid max-w-[96rem] items-center gap-8 px-3 lg:grid-cols-[minmax(0,1fr)_minmax(15rem,0.85fr)_minmax(0,1fr)] lg:gap-10">
+          <div className="text-center text-black lg:col-start-2 lg:row-start-1">
+            <h2 className="font-sans text-xl font-medium leading-tight sm:text-2xl">{detailHeadings.date}</h2>
+            <p className={`${handwriting.className} mt-3 text-2xl leading-tight sm:text-3xl`}>
+              The two donuts back in 2015 paid off!
+            </p>
             <p className="mt-4 font-serif text-3xl leading-tight">{site.weddingDateLabel}</p>
             <a
               href="/calendar.ics"
-              className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-dusk-700 underline decoration-butter-400 decoration-2 underline-offset-4 hover:text-dusk-950"
+              className="mt-5 inline-block text-sm font-semibold underline decoration-butter-200 decoration-2 underline-offset-4"
             >
               Add to calendar
             </a>
+            <p className="mt-5 font-serif text-2xl italic">{saveTheDate}</p>
           </div>
-          <div className="mx-auto mt-10 grid max-w-5xl gap-7 px-3 sm:grid-cols-2 sm:gap-10 lg:gap-16">
-            <figure className="scrapbook-print -rotate-3 self-start">
-              <div className="relative aspect-[4/3]">
-                <Image
-                  src={engagementProposal}
-                  alt="PJ down on one knee proposing to Jedah beneath a leafy arch"
-                  fill
-                  sizes="(min-width: 1100px) 480px, (min-width: 640px) 44vw, 86vw"
-                  className="object-cover object-[center_79%]"
-                />
-              </div>
-            </figure>
-            <div className="sm:mt-8">
-              <p className="mb-4 text-center font-serif text-2xl italic text-dusk-700">{saveTheDate}</p>
-              <figure className="scrapbook-print rotate-3">
-                <div className="relative aspect-[3/2]">
-                  <Image
-                    src={engagementRing}
-                    alt="Jedah shows her engagement ring as she and PJ smile together"
-                    fill
-                    sizes="(min-width: 1100px) 480px, (min-width: 640px) 44vw, 86vw"
-                    className="object-cover object-[center_65%]"
-                  />
-                </div>
-              </figure>
+          <figure className="scrapbook-print relative mx-auto w-full max-w-lg -rotate-3 lg:col-start-1 lg:row-start-1">
+            <span aria-hidden="true" className="scrapbook-tape -rotate-8 bg-butter-200/90">🍩 🍩</span>
+            <div className="relative aspect-[4/3]">
+              <Image
+                src={engagementProposal}
+                alt="PJ down on one knee proposing to Jedah beneath a leafy arch"
+                fill
+                sizes="(min-width: 1024px) 32vw, (min-width: 640px) 512px, 86vw"
+                className="object-cover object-[center_79%]"
+              />
             </div>
-          </div>
+            <figcaption className={`${handwriting.className} absolute bottom-[calc(clamp(1.15rem,3vw,2.5rem)+0.65rem)] right-5 -rotate-6 text-2xl text-white [text-shadow:0_1px_4px_black] sm:text-3xl`}>
+              the proposal
+            </figcaption>
+          </figure>
+          <figure className="scrapbook-print relative mx-auto w-full max-w-lg rotate-3 lg:col-start-3 lg:row-start-1">
+            <span aria-hidden="true" className="scrapbook-tape rotate-8 bg-dusk-100/90">💍 💍</span>
+            <div className="relative aspect-[3/2]">
+              <Image
+                src={engagementRing}
+                alt="Jedah shows her engagement ring as she and PJ smile together"
+                fill
+                sizes="(min-width: 1024px) 32vw, (min-width: 640px) 512px, 86vw"
+                className="object-cover object-[center_65%]"
+              />
+            </div>
+          </figure>
         </Reveal>
+        <ProposalDivider />
       </section>
 
-      <section className="relative isolate overflow-hidden bg-dusk-900 px-5 pb-16 pt-20 text-cream sm:px-10 lg:px-[6vw] lg:pb-24 lg:pt-28">
+      <section className="relative isolate -mt-px overflow-hidden bg-dusk-900 px-5 pb-16 pt-20 text-cream sm:px-10 lg:px-[6vw] lg:pb-24 lg:pt-28">
         <Image src={bulodBackdrop} alt="" fill sizes="100vw" className="-z-20 object-cover" />
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-dusk-950/65" />
-        <div aria-hidden="true" className="scrapbook-edge absolute inset-x-0 top-0 h-8 bg-cream sm:h-12" />
+        <div aria-hidden="true" className="scrapbook-edge absolute inset-x-0 top-0 h-8 bg-dusk-500 sm:h-12" />
         <Reveal className="grid items-center gap-8 lg:grid-cols-[3fr_2fr] lg:gap-12">
           <div>
             <DetailHeading light>{detailHeadings.venue}</DetailHeading>
