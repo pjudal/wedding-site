@@ -32,7 +32,7 @@ export function Hero() {
           preload
           placeholder="blur"
           sizes="100vw"
-          className="object-cover object-[56%_70%]"
+          className="object-cover object-[56%_38%]"
         />
       </motion.div>
 
@@ -41,7 +41,7 @@ export function Hero() {
 
       <motion.div
         style={{ opacity: fade }}
-        className="relative z-10 flex h-full flex-col items-center px-4 pt-24 text-center sm:pt-28"
+        className="relative z-10 flex h-full flex-col items-center px-4 pt-[4.5rem] text-center xl:pt-[clamp(4.5rem,9svh,5rem)]"
       >
         <div className="-mx-4 self-stretch overflow-hidden text-dusk-900">
           <p className="font-serif text-2xl font-semibold motion-safe:sr-only motion-reduce:py-1 motion-reduce:text-center">
@@ -51,7 +51,7 @@ export function Hero() {
             {[0, 1].map((copy) => (
               <div key={copy} className="flex grow shrink-0 items-center justify-around">
                 {Array.from({ length: 20 }, (_, index) => (
-                  <div key={index} className="wedding-banner-phrase flex shrink-0 items-center gap-4 whitespace-nowrap px-3 py-3 font-serif text-lg font-semibold sm:text-xl">
+                  <div key={index} className="wedding-banner-phrase flex shrink-0 items-center gap-4 whitespace-nowrap px-3 py-2 font-serif text-lg font-semibold sm:text-xl">
                     We’re getting married <span className="text-dusk-700">♥</span>
                   </div>
                 ))}
@@ -64,7 +64,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.2, delay: 0.5, ease }}
-          className="mt-3 font-serif text-6xl font-medium leading-none text-dusk-950 sm:text-7xl md:text-8xl"
+          className="mt-2 font-serif text-5xl font-medium leading-none text-dusk-950 sm:text-6xl xl:text-[clamp(3.75rem,10svh,6rem)]"
         >
           {site.coupleA} <span className="font-normal italic text-dusk-500">&amp;</span> {site.coupleB}
         </motion.h1>
@@ -73,7 +73,7 @@ export function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.9, ease }}
-          className="mt-5 font-serif text-xl italic text-dusk-900 sm:text-2xl"
+          className="mt-2 font-serif text-xl italic text-dusk-900 xl:text-2xl"
         >
           {site.heroDateLabel}
           <span className="mx-2 not-italic text-butter-500">&#10022;</span>

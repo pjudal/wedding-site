@@ -131,6 +131,12 @@ li:nth-child(even) > .palette-swatch {
   box-shadow: 0 6px 20px rgb(29 43 57 / 24%);
 }
 
+@media (40rem <= width < 80rem) {
+  #details .scrapbook-print {
+    padding-inline: 0.35rem;
+  }
+}
+
 .scrapbook-tape {
   position: absolute;
   z-index: 1;
