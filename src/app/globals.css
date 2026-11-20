@@ -137,13 +137,59 @@ li:nth-child(even) > .palette-swatch {
   left: 50%;
   translate: -50% 0;
   width: max-content;
-  padding: 0.2rem 0.85rem;
-  font-size: 1.25rem;
-  line-height: 1.45;
-  background-image: repeating-linear-gradient(48deg, transparent 0 4px, rgb(255 255 255 / 25%) 4px 6px);
-  clip-path: polygon(2% 0, 98% 4%, 96% 23%, 100% 39%, 96% 56%, 100% 72%, 97% 100%, 2% 96%, 4% 78%, 0 61%, 4% 43%, 0 25%);
+  padding: 0.32rem 0.95rem;
+  background: var(--color-cream);
+  color: var(--color-dusk-950);
+  font: 700 0.95rem/1.15 "Courier New", monospace;
+  clip-path: polygon(7% 0, 94% 0, 100% 25%, 100% 73%, 94% 100%, 7% 100%, 0 75%, 0 23%);
 }
 
 .closing-film-perforations {
   background: radial-gradient(ellipse 6px 4px at center, var(--color-butter-50) 88%, transparent 100%) center / 24px 100% repeat-x;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .schedule-draw {
+    stroke-dasharray: 1 1;
+    animation: schedule-ink 5.4s linear infinite backwards;
+  }
+}
+
+@keyframes schedule-ink {
+  0% { stroke-dashoffset: 1; }
+  15%, 100% { stroke-dashoffset: 0; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .proposal-donuts {
+    animation: proposal-offer 7s ease-in-out infinite;
+  }
+
+  .proposal-dots {
+    transform-box: fill-box;
+    animation: proposal-dot-trail 7s steps(11, end) infinite;
+  }
+
+  .proposal-ring {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: proposal-ring-pop 7s ease-out infinite;
+  }
+}
+
+@keyframes proposal-offer {
+  0%, 5% { transform: translate(-14px, 8px) rotate(-8deg); }
+  20%, 100% { transform: translate(0, 0); }
+}
+
+@keyframes proposal-dot-trail {
+  0%, 23% { clip-path: inset(-2px 100% -2px -2px) fill-box; opacity: 0; }
+  24% { clip-path: inset(-2px 100% -2px -2px) fill-box; opacity: 1; }
+  68%, 100% { clip-path: inset(-2px -2px -2px -2px) fill-box; opacity: 1; }
+}
+
+@keyframes proposal-ring-pop {
+  0%, 68% { opacity: 0; transform: translateY(7px) scale(0.4); }
+  76% { opacity: 1; transform: translateY(-3px) scale(1.18); }
+  82%, 100% { opacity: 1; transform: translateY(0) scale(1); }
 }
