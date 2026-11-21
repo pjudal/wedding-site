@@ -64,7 +64,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.2, delay: 0.5, ease }}
-          className="mt-2 font-serif text-5xl font-medium leading-none text-dusk-950 sm:text-6xl xl:text-[clamp(3.75rem,10svh,6rem)]"
+          className="mt-2 font-serif text-5xl font-medium leading-none text-dusk-950 sm:text-6xl xl:mt-[clamp(0.5rem,calc(25svh_-_10.5rem),5rem)] xl:text-[clamp(3.75rem,10svh,6rem)]"
         >
           {site.coupleA} <span className="font-normal italic text-dusk-500">&amp;</span> {site.coupleB}
         </motion.h1>

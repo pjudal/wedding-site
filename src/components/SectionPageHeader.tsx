@@ -17,8 +17,8 @@ export function SectionPageHeader({ title, image, imageAlt, sections, intro }: {
           sizes="100vw"
           className="col-start-1 row-start-1 block h-auto w-full self-center"
         />
-        <div className="relative col-start-1 row-start-1 flex min-w-0 flex-col justify-end bg-linear-to-t from-dusk-950/95 via-dusk-950/40 to-transparent px-2 pb-3 pt-4 text-white sm:px-8 sm:pb-10 lg:pb-16">
-          <h1 className="font-serif text-4xl font-semibold leading-none sm:text-6xl lg:text-8xl">{title}</h1>
+        <div className="relative col-start-1 row-start-1 flex h-full max-h-[calc(100svh-4rem)] min-w-0 flex-col justify-center self-start bg-[radial-gradient(ellipse_at_center,rgb(29_43_57_/_85%),transparent_76%)] px-2 py-4 text-white sm:px-8">
+          <h1 className="font-serif text-4xl font-semibold leading-none [text-shadow:0_2px_12px_rgb(0_0_0_/_70%)] sm:text-6xl lg:text-8xl">{title}</h1>
           <nav aria-label="On this page" className="mx-auto mt-3 grid w-full max-w-2xl grid-cols-4 gap-1 sm:mt-6 sm:gap-4">
             {sections.map(({ id, label, icon }) => (
               <a
