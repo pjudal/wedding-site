@@ -7,10 +7,10 @@ import { SectionHeading } from "./SectionHeading";
 import { Stay } from "./Stay";
 
 const travelSections = [
-  { id: "getting-there", label: "Travel Guide" },
-  { id: "stay", label: "Accommodation" },
-  { id: "what-to-bring", label: "What to Bring" },
-  { id: "while-youre-here", label: "While You’re Here" },
+  { id: "getting-there", label: "Travel Guide", icon: "m5 13 12-5 14 5 12-5v28l-12 5-14-5-12 5zm12-5v28m14-23v28M9 30q9-10 18-5t11-7" },
+  { id: "stay", label: "Accommodation", icon: "M6 37V14m0 17h36v6m-36-6V20h15q4 0 4 4v7m0-6h13q4 0 4 4v2m-31-6h9" },
+  { id: "what-to-bring", label: "What to Bring", icon: "M9 19q0-3 3-3h24q3 0 3 3v20H9zm9-3v-5q0-3 3-3h6q3 0 3 3v5m-14 0v23m16-23v23" },
+  { id: "while-youre-here", label: "While You’re Here", icon: "M24 42S10 27 10 18a14 14 0 0 1 28 0c0 9-14 24-14 24ZM29 18a5 5 0 1 1-10 0 5 5 0 0 1 10 0Z" },
 ];
 
 export function Travel() {
