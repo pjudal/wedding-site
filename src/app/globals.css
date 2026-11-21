@@ -151,6 +151,28 @@ li:nth-child(even) > .palette-swatch {
   clip-path: polygon(7% 0, 94% 0, 100% 25%, 100% 73%, 94% 100%, 7% 100%, 0 75%, 0 23%);
 }
 
+.rsvp-envelope {
+  filter: drop-shadow(0 3px 3px rgb(38 56 74 / 25%));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rsvp-envelope {
+    animation: rsvp-envelope-wiggle 3s ease-in-out infinite,
+      rsvp-envelope-glow 3s ease-in-out infinite;
+  }
+}
+
+@keyframes rsvp-envelope-wiggle {
+  0%, 36%, 100% { transform: rotate(0); }
+  9%, 25% { transform: rotate(-5deg); }
+  17% { transform: rotate(5deg); }
+}
+
+@keyframes rsvp-envelope-glow {
+  0%, 48%, 100% { filter: drop-shadow(0 3px 3px rgb(38 56 74 / 25%)); }
+  18% { filter: drop-shadow(0 3px 3px rgb(38 56 74 / 25%)) drop-shadow(0 0 9px #e9b739); }
+}
+
 .closing-film-perforations {
   background: radial-gradient(ellipse 6px 4px at center, var(--color-butter-50) 88%, transparent 100%) center / 24px 100% repeat-x;
 }

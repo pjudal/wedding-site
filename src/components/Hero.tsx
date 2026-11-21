@@ -73,7 +73,7 @@ export function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.9, ease }}
-          className="mt-2 font-serif text-xl italic text-dusk-900 xl:text-2xl"
+          className="mt-2 font-serif text-2xl italic leading-tight text-dusk-900 sm:text-3xl xl:text-[clamp(1.875rem,4svh,2.25rem)]"
         >
           {site.heroDateLabel}
           <span className="mx-2 not-italic text-butter-500">&#10022;</span>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import snowPhoto from "@/assets/timeline-day-3.webp";
+import heroPhoto from "@/assets/travel-hero.webp";
 import { travelTips, weddingPages } from "@/content";
 import { LaUnionMap } from "./LaUnionMap";
 import { SectionPageHeader } from "./SectionPageHeader";
@@ -18,8 +18,8 @@ export function Travel() {
     <main className="bg-cream pt-16">
       <SectionPageHeader
         title={weddingPages.travel.title}
-        image={snowPhoto}
-        imageAlt="PJ photographs Jedah as snow falls around them"
+        image={heroPhoto}
+        imageAlt="PJ and Jedah hold hands under autumn trees, with Jedah carrying a bouquet"
         sections={travelSections}
         intro={weddingPages.travel.intro}
       />

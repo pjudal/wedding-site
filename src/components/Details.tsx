@@ -50,7 +50,7 @@ export function Details() {
           </div>
 
           <div className="text-center text-black lg:col-start-2 lg:row-start-1">
-            <h2 className="font-sans text-xl font-medium leading-tight sm:text-2xl">
+            <h2 className="font-sans text-xl font-medium leading-tight sm:text-3xl">
               <span className="inline-block rounded-md bg-butter-200 px-3 py-1 text-dusk-950">{detailHeadings.date}</span>
             </h2>
             <p className="mt-4 font-typewriter text-base font-bold leading-snug sm:text-lg">
@@ -99,10 +99,10 @@ export function Details() {
         <ProposalDivider />
       </section>
 
-      <section className="relative isolate -mt-px overflow-hidden bg-dusk-900 px-5 pb-20 pt-24 text-cream sm:px-6 lg:px-[4vw] xl:px-[6vw] lg:pb-32 lg:pt-36">
+      <section className="relative isolate -mt-1 overflow-hidden bg-dusk-900 px-5 pb-20 pt-24 text-cream sm:px-6 lg:px-[4vw] xl:px-[6vw] lg:pb-32 lg:pt-36">
         <Image src={bulodBackdrop} alt="" fill sizes="100vw" className="-z-20 object-cover" />
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-dusk-950/65" />
-        <div aria-hidden="true" className="scrapbook-edge absolute inset-x-0 top-0 h-8 bg-dusk-500 sm:h-12" />
+        <div aria-hidden="true" className="scrapbook-edge absolute inset-x-0 -top-1 h-9 bg-dusk-500 sm:h-13" />
         <Reveal className="mx-auto grid max-w-[108rem] items-center gap-9 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1.25fr)_minmax(0,0.7fr)] lg:gap-10">
           <div>
             <h2 className="font-sans text-xl font-medium leading-tight sm:text-3xl">
