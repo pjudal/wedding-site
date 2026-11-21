@@ -4,11 +4,11 @@ import dayTwoPhoto from "@/assets/timeline-day-2.webp";
 import dayThreePhoto from "@/assets/timeline-day-3.webp";
 import { weddingTimeline, weddingTimelineIntro } from "@/content";
 
-export function Schedule({ title }: { title: string }) {
+export function Schedule() {
   return (
-    <main className="min-h-dvh bg-dusk-50 px-5 pb-16 pt-28 sm:px-10 md:pt-36 lg:px-[6vw] lg:pb-24">
+    <section id="weekend-timeline" aria-labelledby="timeline-heading" className="bg-dusk-50 px-5 py-14 sm:px-10 lg:px-[6vw] lg:py-20">
       <header className="text-center">
-        <h1 className="font-serif text-5xl text-dusk-900 md:text-7xl">{title}</h1>
+        <h2 id="timeline-heading" className="font-serif text-4xl text-dusk-900 md:text-5xl">Weekend Timeline</h2>
         <p className="mx-auto mt-4 font-serif text-2xl leading-snug text-dusk-900 md:text-3xl lg:whitespace-nowrap">
           {weddingTimelineIntro}
         </p>
@@ -47,6 +47,6 @@ export function Schedule({ title }: { title: string }) {
           </li>
         ))}
       </ol>
-    </main>
+    </section>
   );
 }

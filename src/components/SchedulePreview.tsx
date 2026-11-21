@@ -61,7 +61,7 @@ export function SchedulePreview() {
           </div>
         ))}
       </div>
-      <Link href="/schedule" className="mt-8 inline-block text-sm font-semibold text-dusk-700 underline decoration-butter-400 decoration-2 underline-offset-4">
+      <Link href="/wedding-details#weekend-timeline" className="mt-8 inline-block text-sm font-semibold text-dusk-700 underline decoration-butter-400 decoration-2 underline-offset-4">
         See the full schedule
       </Link>
     </div>
