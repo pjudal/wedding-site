@@ -29,7 +29,7 @@ export function SchedulePreview() {
   return (
     <div className="bg-dusk-50 px-5 py-12 text-center sm:px-10 lg:px-[6vw] lg:py-20">
       <h2 className="font-sans text-xl font-medium leading-tight sm:text-3xl">
-        <span className="inline-block rounded-md bg-dusk-300 px-3 py-1 text-dusk-950">{detailHeadings.timeline}</span>
+        <span className="bg-linear-to-t from-butter-200 from-30% to-transparent to-30% px-1 text-dusk-700">{detailHeadings.timeline}</span>
       </h2>
       <p className="mx-auto mt-4 font-serif text-2xl leading-snug text-dusk-900 md:text-3xl lg:whitespace-nowrap 2xl:text-4xl">
         {weddingTimelineIntro}

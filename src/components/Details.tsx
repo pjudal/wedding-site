@@ -15,6 +15,15 @@ import { ProposalDivider } from "./ProposalDivider";
 
 const handwriting = Caveat({ subsets: ["latin"], weight: "600" });
 
+const googleCalendarUrl = new URL("https://calendar.google.com/calendar/render");
+googleCalendarUrl.search = new URLSearchParams({
+  action: "TEMPLATE",
+  text: `${site.coupleA} & ${site.coupleB}'s Wedding`,
+  dates: "20270321/20270322",
+  location: `${site.venueName}, ${site.venueLocality}`,
+  details: `Venue directions: ${site.mapsUrl}`,
+}).toString();
+
 export function Details() {
   const [weddingWeekday, weddingDate] = site.weddingDateLabel.split(/, (.+)/);
 
@@ -61,10 +70,12 @@ export function Details() {
               <span className="mt-1 block text-[clamp(2.5rem,10vw,3rem)] sm:text-6xl lg:whitespace-nowrap 2xl:text-8xl">{weddingDate}</span>
             </p>
             <a
-              href="/calendar.ics"
+              href={googleCalendarUrl.href}
+              target="_blank"
+              rel="noopener noreferrer"
               className="mt-5 inline-block text-sm font-semibold underline decoration-butter-200 decoration-2 underline-offset-4"
             >
-              Add to calendar
+              Add to Google Calendar
             </a>
             <p className="mt-5 font-serif text-3xl italic leading-tight lg:whitespace-nowrap lg:text-2xl xl:text-3xl">{saveTheDate}</p>
           </div>
@@ -161,14 +172,16 @@ export function Details() {
             rel="noopener noreferrer"
             className="group mx-auto block w-full max-w-64 rounded-xl px-3 py-2 text-center text-butter-200 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-butter-200"
           >
-            <svg aria-hidden="true" viewBox="0 0 160 112" className="mx-auto w-full max-w-52 motion-safe:transition-transform motion-safe:group-hover:-rotate-3" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m10 42 43-14 52 16 43-16-6 61-40 14-53-16-39 13Zm43-14-4 59m56-43-3 59" />
-              <path d="M19 82q13-2 19-18t24-10q10 4 20 2m18 17q12 11 33-9" strokeDasharray="3 6" />
-              <path d="M107 68c-6-9-20-19-20-36a20 20 0 0 1 40 0c0 17-14 27-20 36Z" fill="var(--color-dusk-900)" />
-              <path d="M107 43c-5-4-10-7-10-12 0-5 6-6 10-2 4-4 10-3 10 2 0 5-5 8-10 12Z" />
-              <path d="M134 10v12m-6-6h12M25 20v9m-4-4h9" />
-            </svg>
-            <span className={`${handwriting.className} mt-1 block text-3xl sm:text-4xl group-hover:underline`}>Get directions</span>
+            <span className="illustrated-link block">
+              <svg aria-hidden="true" viewBox="0 0 160 112" className="mx-auto w-full max-w-52" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m10 42 43-14 52 16 43-16-6 61-40 14-53-16-39 13Zm43-14-4 59m56-43-3 59" />
+                <path d="M19 82q13-2 19-18t24-10q10 4 20 2m18 17q12 11 33-9" strokeDasharray="3 6" />
+                <path d="M107 68c-6-9-20-19-20-36a20 20 0 0 1 40 0c0 17-14 27-20 36Z" fill="var(--color-dusk-900)" />
+                <path d="M107 43c-5-4-10-7-10-12 0-5 6-6 10-2 4-4 10-3 10 2 0 5-5 8-10 12Z" />
+                <path d="M134 10v12m-6-6h12M25 20v9m-4-4h9" />
+              </svg>
+              <span className={`${handwriting.className} mt-1 block text-3xl sm:text-4xl group-hover:underline group-focus-visible:underline`}>Get directions</span>
+            </span>
           </a>
         </Reveal>
         <div aria-hidden="true" className="scrapbook-edge absolute inset-x-0 -bottom-px h-8 rotate-180 bg-dusk-50 sm:h-12" />

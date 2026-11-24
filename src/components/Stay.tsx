@@ -5,7 +5,8 @@ import { SectionHeading } from "./SectionHeading";
 
 export function Stay() {
   return (
-    <section id="stay" className="bg-dusk-700 px-4 py-20 text-cream md:py-28">
+    <section id="stay" className="relative bg-dusk-700 px-4 py-20 text-cream md:py-28">
+      <div aria-hidden="true" className="scrapbook-edge pointer-events-none absolute inset-x-0 -top-px h-7 bg-butter-200 sm:h-10" />
       <div className="mx-auto max-w-5xl">
         <SectionHeading eyebrow="Accommodation" title="Stay With Us" light />
 

@@ -40,7 +40,7 @@ export function DressCode() {
             <Image
               src={guestAttire}
               alt="Watercolor outfits in blush, sage, lilac and peach, with airy dresses and lightweight button-downs with chinos"
-              className="mx-auto mb-4 h-48 w-auto object-contain mix-blend-multiply sm:h-56"
+              className="mx-auto mb-4 h-48 w-auto object-contain mix-blend-multiply brightness-105 sm:h-56"
               sizes="224px"
             />
             <GuestPalette showGuestShades />
@@ -57,7 +57,7 @@ export function DressCode() {
                   src={illustrations[title].image}
                   alt={illustrations[title].alt}
                   sizes="(min-width: 1024px) 704px, (min-width: 640px) calc(100vw - 5rem), calc(100vw - 4rem)"
-                  className="mt-4 h-auto w-full mix-blend-multiply"
+                  className="mt-4 h-auto w-full mix-blend-multiply brightness-[1.09]"
                 />
               </article>
             ))}

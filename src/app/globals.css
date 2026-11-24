@@ -75,32 +75,6 @@ body:has(dialog[open]) {
   transform: rotate(-8deg) skewX(-5deg);
 }
 
-.palette-swatch {
-  position: relative;
-  transform: rotate(-4deg);
-  clip-path: polygon(
-    2% 7%, 12% 3%, 17% 6%, 25% 2%, 32% 5%, 41% 2%, 48% 5%,
-    57% 2%, 65% 5%, 74% 2%, 82% 5%, 91% 2%, 97% 6%,
-    98% 23%, 96% 34%, 99% 49%, 97% 61%, 99% 76%, 96% 93%,
-    87% 97%, 81% 94%, 72% 98%, 64% 95%, 55% 98%, 47% 95%,
-    38% 98%, 30% 95%, 22% 98%, 15% 94%, 7% 97%, 2% 92%,
-    3% 76%, 1% 64%, 3% 50%, 1% 36%, 3% 22%
-  );
-}
-
-li:nth-child(even) > .palette-swatch {
-  transform: rotate(3deg);
-}
-
-.palette-swatch::after {
-  position: absolute;
-  inset: 0;
-  background:
-    repeating-linear-gradient(0deg, transparent 0 2px, rgb(255 255 255 / 25%) 2px 3px),
-    repeating-linear-gradient(90deg, transparent 0 2px, rgb(38 56 74 / 9%) 2px 3px);
-  content: "";
-}
-
 .wedding-banner-phrase {
   transform: translateY(-4px) rotate(-5deg);
 }
@@ -151,24 +125,24 @@ li:nth-child(even) > .palette-swatch {
   clip-path: polygon(7% 0, 94% 0, 100% 25%, 100% 73%, 94% 100%, 7% 100%, 0 75%, 0 23%);
 }
 
-.rsvp-envelope {
+.illustrated-link {
   filter: drop-shadow(0 3px 3px rgb(38 56 74 / 25%));
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .rsvp-envelope {
-    animation: rsvp-envelope-wiggle 3s ease-in-out infinite,
-      rsvp-envelope-glow 3s ease-in-out infinite;
+  .illustrated-link {
+    animation: illustrated-link-wiggle 3s ease-in-out infinite,
+      illustrated-link-glow 3s ease-in-out infinite;
   }
 }
 
-@keyframes rsvp-envelope-wiggle {
+@keyframes illustrated-link-wiggle {
   0%, 36%, 100% { transform: rotate(0); }
   9%, 25% { transform: rotate(-5deg); }
   17% { transform: rotate(5deg); }
 }
 
-@keyframes rsvp-envelope-glow {
+@keyframes illustrated-link-glow {
   0%, 48%, 100% { filter: drop-shadow(0 3px 3px rgb(38 56 74 / 25%)); }
   18% { filter: drop-shadow(0 3px 3px rgb(38 56 74 / 25%)) drop-shadow(0 0 9px #e9b739); }
 }

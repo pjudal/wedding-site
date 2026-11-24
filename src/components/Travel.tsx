@@ -24,7 +24,7 @@ export function Travel() {
         intro={weddingPages.travel.intro}
       />
 
-      <section id="getting-there" className="border-t border-dusk-100 bg-butter-200">
+      <section id="getting-there" className="bg-butter-200">
         <div className="flow-root px-5 pt-14 md:pt-20">
           <SectionHeading eyebrow="Travel Guide" title="Getting There" eyebrowClassName="text-dusk-700" />
         </div>
@@ -41,7 +41,8 @@ export function Travel() {
         </div>
       </section>
       <Stay />
-      <section id="what-to-bring" className="border-t border-dusk-100 bg-cream px-5 py-14 md:px-8 md:py-20">
+      <section id="what-to-bring" className="relative bg-cream px-5 py-14 md:px-8 md:py-20">
+        <div aria-hidden="true" className="scrapbook-edge pointer-events-none absolute inset-x-0 -top-px h-7 bg-dusk-700 sm:h-10" />
         <h2 className="text-center font-serif text-4xl text-dusk-900 md:text-5xl">What to Bring</h2>
         <ul className="mx-auto mt-8 grid max-w-4xl gap-x-8 gap-y-5 rounded-2xl border border-dusk-100 bg-white p-6 text-dusk-700 sm:grid-cols-2 sm:p-8">
           <li>
@@ -78,7 +79,8 @@ export function Travel() {
           </li>
         </ul>
       </section>
-      <section id="while-youre-here" className="bg-dusk-50 px-5 py-14 md:px-8 md:py-20">
+      <section id="while-youre-here" className="relative bg-dusk-50 px-5 py-14 md:px-8 md:py-20">
+        <div aria-hidden="true" className="scrapbook-edge pointer-events-none absolute inset-x-0 -top-px h-7 bg-cream sm:h-10" />
         <div className="mx-auto max-w-5xl">
           <h2 className="text-center font-serif text-4xl text-dusk-900 md:text-5xl">While You’re Here</h2>
           <p className="mt-3 text-center text-dusk-700">A few of our favorite spots in La Union.</p>

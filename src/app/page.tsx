@@ -44,7 +44,7 @@ export default function Home() {
           href="/rsvp"
           className="group relative mx-auto mt-8 block w-40 max-w-full cursor-pointer rounded-2xl text-dusk-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-dusk-700 sm:w-44"
         >
-          <span className="rsvp-envelope relative block">
+          <span className="illustrated-link relative block">
             <svg aria-hidden="true" viewBox="0 0 176 112" className="w-full" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 43 86 7q3-2 6 0l65 37v49H19Z" fill="var(--color-dusk-300)" />
               <path d="M34 51V22q0-5 5-5h98q5 0 5 5v29L89 81Z" fill="var(--color-cream)" />

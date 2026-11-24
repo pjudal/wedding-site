@@ -33,9 +33,9 @@ export function SectionPageHeader({ title, image, imageAlt, sections, intro }: {
               </a>
             ))}
           </nav>
+          {intro && <p className="mx-auto mt-3 max-w-xl px-3 text-xs leading-snug sm:mt-5 sm:text-base">{intro}</p>}
         </div>
       </div>
-      {intro && <p className="mx-auto max-w-2xl px-5 py-6 text-dusk-700">{intro}</p>}
     </header>
   );
 }
