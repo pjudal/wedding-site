@@ -19,12 +19,12 @@ export function GuestPalette({
   const label = entourage ? "Entourage color palette" : "Guest color palette";
 
   return (
-    <ul className={`mx-auto grid max-w-md gap-1 sm:gap-4 ${entourage ? "w-fit grid-cols-2" : "grid-cols-5"}`} aria-label={label}>
+    <ul className={`mx-auto grid max-w-xl gap-1 sm:gap-3 ${entourage ? "w-fit grid-cols-2" : "grid-cols-5"}`} aria-label={label}>
       {colors.map(({ name, hex }, index) => {
         const shades = showGuestShades && !entourage ? guestShadePairs[index] : undefined;
         return (
           <li key={name} className="flex min-w-0 flex-col items-center gap-2 text-center text-xs leading-tight text-dusk-700">
-            <svg aria-hidden="true" viewBox="0 0 56 40" className="block h-7 w-10 max-w-full sm:h-10 sm:w-14">
+            <svg aria-hidden="true" viewBox="0 0 56 40" className="block aspect-[7/5] h-auto w-18 max-w-full drop-shadow-[0_0_9px_white] sm:w-24">
               {shades && (
                 <defs>
                   <linearGradient id={`guest-shell-${index}`} x2="100%" y2="70%">

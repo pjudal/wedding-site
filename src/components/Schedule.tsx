@@ -21,10 +21,10 @@ const handwriting = Caveat({ subsets: ["latin"], weight: "600" });
 
 export function Schedule() {
   return (
-    <section id="weekend-timeline" aria-labelledby="timeline-heading" className="bg-dusk-50 px-5 py-14 sm:px-10 lg:px-[6vw] lg:py-20">
+    <section id="weekend-timeline" aria-labelledby="timeline-heading" className="bg-dusk-500 px-5 py-14 sm:px-10 lg:px-[6vw] lg:py-20">
       <header className="text-center">
-        <h2 id="timeline-heading" className="font-serif text-4xl text-dusk-900 md:text-5xl">Weekend Timeline</h2>
-        <p className="mx-auto mt-4 font-serif text-2xl leading-snug text-dusk-900 md:text-3xl lg:whitespace-nowrap">
+        <h2 id="timeline-heading" className="font-serif text-4xl text-black md:text-5xl">Weekend Timeline</h2>
+        <p className="mx-auto mt-4 font-serif text-2xl leading-snug text-black md:text-3xl lg:whitespace-nowrap">
           {weddingTimelineIntro}
         </p>
       </header>
@@ -32,35 +32,41 @@ export function Schedule() {
         {weddingTimeline.map(({ date, title, note, events }, index) => (
           <li key={date} className="grid min-w-0 content-start gap-y-4 border-t border-dusk-300 pt-5 lg:row-span-3 lg:grid-rows-subgrid">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-dusk-700">{date}</p>
-              <h3 className="mt-1 font-serif text-2xl font-semibold leading-tight text-dusk-700 sm:text-3xl">{title}</h3>
-              {note && <p className="mt-2 leading-relaxed text-dusk-700">{note}</p>}
+              <p className="text-xs font-semibold uppercase tracking-widest text-black">{date}</p>
+              <h3 className="mt-1 font-serif text-2xl font-semibold leading-tight text-black sm:text-3xl">{title}</h3>
+              {note && <p className="mt-2 leading-relaxed text-black">{note}</p>}
             </div>
-            <figure className="scrapbook-print self-start">
+            <figure className="scrapbook-print relative self-start">
               <Image
                 src={index === 0 ? dayOnePhoto : index === 1 ? dayTwoPhoto : dayThreePhoto}
                 alt={index === 0 ? "Sunset over the sea reflected in Bulod’s pool" : index === 1 ? "PJ gives Jedah a piggyback ride under autumn trees" : "PJ and Jedah embrace beneath the trees with sunlight between them"}
                 sizes="(min-width: 1024px) 29vw, 94vw"
-                className="h-auto w-full"
+                className="aspect-[2/3] w-full object-contain"
               />
               {index === 0 && (
-                <figcaption className="mt-2 text-xs text-dusk-700">
+                <figcaption className="absolute inset-x-[clamp(0.4rem,1vw,0.8rem)] bottom-1 text-xs text-dusk-700">
                   <a href="https://www.instagram.com/p/DV8QwB7k8Ha/" className="underline underline-offset-4">Photo by Bulod</a>
                 </figcaption>
               )}
             </figure>
             {events.length > 0 && (
-              <ol className="relative grid gap-5 self-start before:absolute before:inset-y-5 before:left-[1.21875rem] before:w-px before:bg-dusk-300">
-                {events.map(({ label, time }) => (
-                  <li key={label} className="relative flex items-center gap-4">
-                    <span className="grid size-10 shrink-0 place-items-center rounded-full border border-dusk-300 bg-dusk-50 text-dusk-700" aria-hidden="true">
-                      <svg viewBox="0 0 48 48" className="size-7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <ol className={events.length > 1
+                ? "relative mx-auto grid w-full max-w-md gap-6 self-start before:absolute before:inset-y-6 before:left-6 before:w-px before:bg-dusk-300 sm:before:left-1/2 sm:before:-translate-x-1/2"
+                : "grid justify-items-center self-start"}>
+                {events.map(({ label, time }, eventIndex) => (
+                  <li key={label} className={events.length > 1
+                    ? "relative grid min-h-12 grid-cols-[3rem_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[minmax(0,1fr)_3rem_minmax(0,1fr)]"
+                    : "flex flex-col items-center gap-3 text-center"}>
+                    <span className="grid size-12 shrink-0 place-items-center rounded-full border border-dusk-300 bg-dusk-50 text-dusk-700 sm:col-start-2 sm:row-start-1" aria-hidden="true">
+                      <svg viewBox="0 0 48 48" className="size-8" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                         <path d={eventIcons[label]} />
                       </svg>
                     </span>
-                    <div className="min-w-0">
-                      <span className={`${handwriting.className} inline-block -rotate-2 whitespace-nowrap rounded-md bg-butter-200 px-2 py-0.5 text-xl leading-none text-dusk-900`}>{time}</span>
-                      <span className="mt-1 block font-serif text-xl leading-tight text-dusk-900">{label}</span>
+                    <div className={events.length > 1
+                      ? `min-w-0 sm:row-start-1 ${eventIndex % 2 === 0 ? "sm:col-start-3" : "sm:col-start-1 sm:text-right"}`
+                      : "min-w-0"}>
+                      <span className={`${handwriting.className} inline-block -rotate-2 whitespace-nowrap rounded-md bg-butter-200 px-2 py-0.5 text-2xl leading-none text-dusk-900`}>{time}</span>
+                      <span className="mt-1 block font-serif text-2xl leading-tight text-black">{label}</span>
                     </div>
                   </li>
                 ))}
