@@ -73,7 +73,6 @@ export const weddingTabs = [
   { href: "/", label: "Home" },
   { href: "/wedding-details", label: "Sun, Sand, and Schedule" },
   { href: "/travel", label: "Pack Your Bags" },
-  { href: "/wedding-party", label: "By Our Side" },
   { href: "/our-story", label: "Firsts & Favorites" },
   { href: "/photos", label: "Us, Lately" },
   { href: "/faq", label: "FAQs" },
@@ -90,7 +89,6 @@ export const weddingPages = {
   "our-story": { title: "Firsts & Favorites" },
   travel: { title: "Pack Your Bags", intro: "From Manila to Bulod, La Union. The ceremony, reception, and after-party will all take place at Bulod." },
   photos: { title: "Us, Lately", intro: "Photos coming soon." },
-  "wedding-party": { title: "By Our Side", intro: "Meet our entourage here soon." },
   faq: { title: "FAQs" },
   rsvp: { title: "RSVP" },
 };
@@ -123,11 +121,13 @@ export const laUnionFavorites = [
 
 export const travelTips = [
   {
+    mode: "car" as const,
     title: "Driving from Manila",
     text: "Head north via NLEX, SCTEX, and TPLEX toward La Union, then follow the directions to the Bulod venue pin. Set your exact starting point in Maps before leaving.",
     link: { href: site.drivingDirectionsUrl, label: "Get driving directions from Manila" },
   },
   {
+    mode: "bus" as const,
     title: "Taking the bus from Manila",
     text: "Look for a Manila departure bound for San Fernando, La Union. Confirm the terminal, schedule, and drop-off with the bus operator, then arrange a ride from the drop-off to Bulod and share the venue pin with your driver.",
     link: { href: site.mapsUrl, label: "Open the Bulod venue pin" },

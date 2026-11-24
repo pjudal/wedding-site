@@ -11,7 +11,7 @@ const illustrations = {
 
 export function DressCode() {
   return (
-    <section id="dress-code" aria-labelledby="dress-code-heading" className="relative bg-butter-50 pb-16 md:pb-24">
+    <section id="dress-code" aria-labelledby="dress-code-heading" className="relative isolate bg-butter-50 pb-16 md:pb-24">
       <div aria-hidden="true" className="scrapbook-edge pointer-events-none absolute inset-x-0 -top-px h-7 bg-dusk-500 sm:h-10" />
       <header className="bg-butter-50 px-4 py-14 text-center md:py-20">
         <h2 id="dress-code-heading" className="font-serif text-4xl text-dusk-900 md:text-5xl">
@@ -41,12 +41,14 @@ export function DressCode() {
                   <h3 className="font-serif text-4xl italic text-dusk-700">{title}</h3>
                   <p className="mt-2 max-w-xl text-sm leading-relaxed text-dusk-700">{description}</p>
                 </div>
-                <Image
-                  src={illustrations[title].image}
-                  alt={illustrations[title].alt}
-                  sizes="(min-width: 1024px) 680px, (min-width: 768px) 62vw, 94vw"
-                  className={`h-auto w-full mix-blend-multiply brightness-[1.09] md:col-span-2 md:row-start-1 ${index % 2 ? "md:col-start-1" : "md:col-start-2"}`}
-                />
+                <div className={`mix-blend-multiply md:col-span-2 md:row-start-1 ${index % 2 ? "md:col-start-1" : "md:col-start-2"}`}>
+                  <Image
+                    src={illustrations[title].image}
+                    alt={illustrations[title].alt}
+                    sizes="(min-width: 1024px) 680px, (min-width: 768px) 62vw, 94vw"
+                    className="h-auto w-full brightness-[1.09]"
+                  />
+                </div>
               </article>
             ))}
           </div>

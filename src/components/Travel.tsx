@@ -6,6 +6,11 @@ import { SectionPageHeader } from "./SectionPageHeader";
 import { SectionHeading } from "./SectionHeading";
 import { Stay } from "./Stay";
 
+const transportIcons = {
+  car: "M6 25l5-2 5-9h15l6 9 5 2v9H6Zm5-2h26m-11-9v9M9 28h3m24 0h3M16 34a4 4 0 1 1-8 0m32 0a4 4 0 1 1-8 0",
+  bus: "M6 29V17q0-5 5-5h25q6 0 6 6v16H6Zm0-10h35m-25 0v8m9-8v8m9-8v8M6 27h36m-3 3h3M17 34a4 4 0 1 1-8 0m22 0a4 4 0 1 1-8 0",
+};
+
 const travelSections = [
   { id: "getting-there", label: "Travel Guide", icon: "m5 13 12-5 14 5 12-5v28l-12 5-14-5-12 5zm12-5v28m14-23v28M9 30q9-10 18-5t11-7" },
   { id: "stay", label: "Accommodation", icon: "M6 37V14m0 17h36v6m-36-6V20h15q4 0 4 4v7m0-6h13q4 0 4 4v2m-31-6h9" },
@@ -28,10 +33,17 @@ export function Travel() {
         <div className="flow-root px-5 pt-14 md:pt-20">
           <SectionHeading eyebrow="Travel Guide" title="Getting There" eyebrowClassName="text-dusk-700" />
         </div>
-        <div className="mx-auto grid max-w-5xl gap-4 px-5 py-10 md:grid-cols-2 md:px-8 md:py-14">
-          {travelTips.map(({ title, text, link }) => (
+        <div className="mx-auto grid max-w-5xl gap-4 px-5 pb-10 md:grid-cols-2 md:px-8 md:pb-14">
+          {travelTips.map(({ mode, title, text, link }) => (
             <article key={title} className="rounded-2xl border border-dusk-100 bg-white p-6">
-              <h3 className="font-serif text-3xl text-dusk-500">{title}</h3>
+              <div className="flex items-center gap-3">
+                <svg aria-hidden="true" viewBox="0 0 48 48" className="size-12 shrink-0 text-dusk-700" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="24" cy="24" r="21" className="fill-butter-50 stroke-none" />
+                  <path d={transportIcons[mode]} />
+                  <path d="M35 3v7m-3.5-3.5h7M10 6v5M7.5 8.5h5" />
+                </svg>
+                <h3 className="font-serif text-3xl leading-tight text-dusk-700">{title}</h3>
+              </div>
               <p className="mt-2 leading-relaxed text-dusk-700">{text}</p>
               <a href={link.href} className="mt-4 inline-block text-sm font-semibold text-dusk-700 underline underline-offset-4">
                 {link.label}
