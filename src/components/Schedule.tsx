@@ -23,14 +23,14 @@ export function Schedule() {
   return (
     <section id="weekend-timeline" aria-labelledby="timeline-heading" className="bg-dusk-500 px-5 py-14 sm:px-10 lg:px-[6vw] lg:py-20">
       <header className="text-center">
-        <h2 id="timeline-heading" className="font-serif text-4xl text-black md:text-5xl">Weekend Timeline</h2>
+        <h2 id="timeline-heading" className="font-serif text-4xl text-black md:text-5xl"><span className="bg-butter-400 px-1">Weekend Timeline</span></h2>
         <p className="mx-auto mt-4 font-serif text-2xl leading-snug text-black md:text-3xl lg:whitespace-nowrap">
           {weddingTimelineIntro}
         </p>
       </header>
       <ol className="mt-8 grid gap-10 lg:grid-cols-3 lg:gap-8">
         {weddingTimeline.map(({ date, title, note, events }, index) => (
-          <li key={date} className="grid min-w-0 content-start gap-y-4 border-t border-dusk-300 pt-5 lg:row-span-3 lg:grid-rows-subgrid">
+          <li key={date} className="grid min-w-0 content-start gap-y-4 lg:row-span-3 lg:grid-rows-subgrid">
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-black">{date}</p>
               <h3 className="mt-1 font-serif text-2xl font-semibold leading-tight text-black sm:text-3xl">{title}</h3>

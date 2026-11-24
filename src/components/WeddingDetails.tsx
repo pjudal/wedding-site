@@ -23,7 +23,7 @@ export function WeddingDetails() {
       <Schedule />
       <DressCode />
       <section id="little-favors" className="relative bg-dusk-100 px-5 pb-14 pt-16 text-center md:pb-20 md:pt-24">
-        <div aria-hidden="true" className="scrapbook-edge pointer-events-none absolute inset-x-0 top-0 h-7 bg-butter-50 sm:h-10" />
+        <div aria-hidden="true" className="scrapbook-edge pointer-events-none absolute inset-x-0 -top-px h-7 bg-butter-50 sm:h-10" />
         <h2 className="font-serif text-4xl text-dusk-900 md:text-5xl">A Few Little Favors</h2>
         <ul className="mx-auto mt-6 max-w-xl space-y-4 text-dusk-700">
           <li>During our unplugged ceremony, tuck your phones away and share the moment with us.</li>
@@ -31,7 +31,7 @@ export function WeddingDetails() {
         </ul>
       </section>
       <section id="wishes-and-blessings" className="relative bg-butter-200 px-5 pb-14 pt-16 text-center md:pb-20 md:pt-24">
-        <div aria-hidden="true" className="scrapbook-edge pointer-events-none absolute inset-x-0 top-0 h-7 bg-dusk-100 sm:h-10" />
+        <div aria-hidden="true" className="scrapbook-edge pointer-events-none absolute inset-x-0 -top-px h-7 bg-dusk-100 sm:h-10" />
         <h2 className="font-serif text-4xl text-dusk-900 md:text-5xl">Wishes &amp; Blessings</h2>
         <p className="mx-auto mt-6 max-w-xl text-dusk-700">
           Getting to spend the weekend with you is the best gift we could ask for. Thank you for making the time and the trip to celebrate with us.

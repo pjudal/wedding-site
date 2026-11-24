@@ -12,7 +12,7 @@ const illustrations = {
 export function DressCode() {
   return (
     <section id="dress-code" aria-labelledby="dress-code-heading" className="relative bg-butter-50 pb-16 md:pb-24">
-      <div aria-hidden="true" className="scrapbook-edge pointer-events-none absolute inset-x-0 top-0 h-7 bg-dusk-500 sm:h-10" />
+      <div aria-hidden="true" className="scrapbook-edge pointer-events-none absolute inset-x-0 -top-px h-7 bg-dusk-500 sm:h-10" />
       <header className="bg-butter-50 px-4 py-14 text-center md:py-20">
         <h2 id="dress-code-heading" className="font-serif text-4xl text-dusk-900 md:text-5xl">
           Dress Code

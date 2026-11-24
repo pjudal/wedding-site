@@ -169,7 +169,7 @@ export const weddingTimeline = [
   {
     date: "Monday, March 22",
     title: "Until next time",
-    note: "Take it slow this morning. You’ve still got half the day to enjoy La Union before heading home.",
+    note: "Take it slow this morning. You’ve still got half the day to enjoy La Union before heading home. Then again, it’s Holy Week. Heading straight home might be wishful thinking. 😉",
     events: [{ label: "Wrap up at Bulod", time: "12:00 PM" }],
   },
 ];
