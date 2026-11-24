@@ -1,26 +1,27 @@
 import Link from "next/link";
 import { detailHeadings, site, weddingTimelineIntro } from "@/content";
+import { timelineIcons } from "./timelineIcons";
 
 const weekend = [
   {
     day: "Saturday · March 20",
     events: [
-      { label: "Settle in by the sea", time: "2:00 PM", icon: "M9 36V20q0-4 4-4h22q4 0 4 4v16q0 4-4 4H13q-4 0-4-4ZM18 16v-4q0-3 3-3h6q3 0 3 3v4M16 17v22m16-22v22M5 12l2-5m-4 3 6 1m31-4 1 6m-3-2 6-1" },
+      { label: "Settle in by the sea", time: "2:00 PM", icon: timelineIcons.arrival },
     ],
   },
   {
     day: "Sunday · March 21",
     events: [
-      { label: "Welcome brunch", time: "10:00 AM", icon: "M8 21h25v7q-1 10-12 10T8 28Zm25 2h4q9 0 7 6-2 5-12 5M5 41q13 4 31 0M15 16q-5-4 0-8m7 8q-5-5 0-11m7 11q-4-4 0-8" },
-      { label: "Ceremony", time: site.ceremonyTimeLabel, icon: "M23 22a11 11 0 1 0 0 15m-2-11a11 11 0 1 1 2 12m-4-19 5-5h9l5 5-10 9Zm0 0h19m-14-5 4 14 5-14M13 10v6m-3-3h6m24-4v5m-2-3h5" },
-      { label: "Toast", time: "5:30 PM", icon: "m8 8 12 3-3 13q-2 6-7 4t-4-8Zm27 0-12 3 3 13q2 6 7 4t4-8ZM10 28 7 39m-5-1 11 3m20-13 3 11m-5 2 11-3M7 18l11 3m7 0 11-3M23 5V2m-5 4-3-4m12 4 3-4" },
-      { label: "Dinner", time: "8:00 PM", icon: "M36 25c0 7-5 13-12 13s-13-6-13-13 6-13 13-13 12 6 12 13Zm-4 0a8 8 0 1 1-16 0 8 8 0 0 1 16 0ZM3 13v9q0 3 4 3v15M7 13v11m37-11q-6 4-5 16h5m0-16v27M16 6l1 3m13-3 1 3" },
+      { label: "Welcome brunch", time: "10:00 AM", icon: timelineIcons.brunch },
+      { label: "Ceremony", time: site.ceremonyTimeLabel, icon: timelineIcons.ceremony },
+      { label: "Toast", time: "5:30 PM", icon: timelineIcons.toast },
+      { label: "Dinner", time: "8:00 PM", icon: timelineIcons.dinner },
     ],
   },
   {
     day: "Monday · March 22",
     events: [
-      { label: "Till next time", time: "12:00 PM", icon: "M5 29q5-3 7-9l3-8q2-3 4 0l-1 9 6-14q2-3 4 0l-4 13 7-12q3-2 4 1l-6 13 8-9q4-1 3 3l-9 14q-4 7-12 8l-5 5M3 11l4 4M10 5l3 5m28 15 4-2m-5 9 5-1" },
+      { label: "Till next time", time: "12:00 PM", icon: timelineIcons.farewell },
     ],
   },
 ];

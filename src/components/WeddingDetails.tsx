@@ -1,4 +1,3 @@
-import Link from "next/link";
 import heroPhoto from "@/assets/wedding-details-hero.webp";
 import { weddingPages } from "@/content";
 import { DressCode } from "./DressCode";
@@ -38,8 +37,6 @@ export function WeddingDetails() {
           Getting to spend the weekend with you is the best gift we could ask for. Thank you for making the time and the trip to celebrate with us.
         </p>
         <p className="mx-auto mt-6 max-w-xl text-dusk-700">Please feel free to come empty-handed. If you’d still like to give something, we’d be grateful for a little help building our honeymoon fund.</p>
-        <p className="mx-auto mt-6 max-w-xl text-dusk-700">And if you’d like to leave us a few words, there’s a little space for a note in your RSVP.</p>
-        <Link href="/rsvp" className="mt-4 inline-block font-semibold text-dusk-900 underline underline-offset-4">Leave us a note in your RSVP</Link>
       </section>
     </main>
   );
