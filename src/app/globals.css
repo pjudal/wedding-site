@@ -196,3 +196,27 @@ body:has(dialog[open]) {
   76% { opacity: 1; transform: translateY(-3px) scale(1.18); }
   82%, 100% { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+.album-paper {
+  background:
+    linear-gradient(90deg, rgb(104 76 39 / 23%), transparent 8%, transparent 94%, rgb(104 76 39 / 16%)),
+    repeating-linear-gradient(132deg, #eee7cf 0 4px, #e4d6ad 4px 5px, #f3edd9 5px 9px);
+  box-shadow: inset 0 0 18px rgb(125 88 41 / 20%);
+}
+
+.album-pocket {
+  border: 1px solid rgb(255 255 245 / 90%);
+  border-bottom-color: rgb(117 100 66 / 38%);
+  background-color: rgb(255 250 226 / 22%);
+  box-shadow: inset 0 0 0 2px rgb(255 255 245 / 32%), 0 2px 3px rgb(108 85 51 / 19%);
+}
+
+.album-pocket::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background:
+    linear-gradient(112deg, transparent 8%, rgb(255 255 255 / 37%) 19%, rgb(255 255 255 / 8%) 24%, transparent 37%, transparent 67%, rgb(255 255 255 / 27%) 72%, transparent 84%),
+    repeating-linear-gradient(93deg, transparent 0 19px, rgb(255 255 255 / 12%) 20px, transparent 22px 37px);
+}
