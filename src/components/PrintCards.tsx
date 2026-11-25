@@ -60,7 +60,7 @@ export function PrintCards() {
                 type="button"
                 onClick={() => window.print()}
                 disabled={!shareUrl}
-                className="rounded-full bg-dusk-700 px-5 py-2 font-semibold text-cream disabled:opacity-50"
+                className="cursor-pointer rounded-full bg-dusk-700 px-5 py-2 font-semibold text-cream transition hover:bg-dusk-900 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Print
               </button>

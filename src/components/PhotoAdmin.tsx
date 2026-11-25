@@ -45,7 +45,7 @@ function SignIn({ error = "" }: { error?: string }) {
           className="mt-6 w-full rounded-2xl border border-dusk-100 bg-white px-4 py-3 text-base text-dusk-950 outline-none placeholder:text-dusk-300 focus:border-dusk-500 focus:ring-4 focus:ring-dusk-100"
         />
         {error && <p className="mt-2 text-sm text-red-700">{error}</p>}
-        <button type="submit" className="mt-4 w-full rounded-full bg-dusk-700 px-6 py-3 font-semibold text-cream hover:bg-dusk-900">
+        <button type="submit" className="mt-4 w-full cursor-pointer rounded-full bg-dusk-700 px-6 py-3 font-semibold text-cream transition hover:bg-dusk-900">
           Open
         </button>
         <p className="mt-3 text-xs text-dusk-500">This device will remember it.</p>
@@ -116,7 +116,7 @@ function Dashboard({ k }: { k: string }) {
       <div className="mx-auto max-w-5xl">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h1 className="font-serif text-4xl text-dusk-950">Guest photos</h1>
-          {k && <button type="button" onClick={() => saveAdminKey("")} className="text-sm text-dusk-500 underline-offset-4 hover:underline">
+          {k && <button type="button" onClick={() => saveAdminKey("")} className="cursor-pointer text-sm text-dusk-500 underline-offset-4 hover:text-dusk-900 hover:underline">
             Sign out on this device
           </button>}
         </div>
@@ -170,8 +170,10 @@ function Dashboard({ k }: { k: string }) {
                   type="button"
                   disabled={busy === p.id}
                   onClick={() => toggle(p)}
-                  className={`shrink-0 rounded-full px-3 py-1 font-semibold ${
-                    p.hidden ? "bg-butter-200 text-dusk-950" : "bg-dusk-100 text-dusk-900"
+                  className={`shrink-0 cursor-pointer rounded-full px-3 py-1 font-semibold transition disabled:cursor-wait disabled:opacity-60 ${
+                    p.hidden
+                      ? "bg-butter-200 text-dusk-950 hover:bg-butter-400"
+                      : "bg-dusk-100 text-dusk-900 hover:bg-dusk-700 hover:text-cream"
                   }`}
                 >
                   {p.hidden ? "Show" : "Hide"}

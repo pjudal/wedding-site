@@ -199,7 +199,7 @@ export function ShareUploader() {
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="mt-6 w-full rounded-full bg-dusk-700 px-6 py-4 text-lg font-semibold text-cream shadow-lg shadow-dusk-700/20 transition hover:bg-dusk-900 active:scale-[0.98]"
+          className="mt-6 w-full cursor-pointer rounded-full bg-dusk-700 px-6 py-4 text-lg font-semibold text-cream shadow-lg shadow-dusk-700/20 transition hover:bg-dusk-900 active:scale-[0.98]"
         >
           {items.length ? photos.pickMore : photos.pickButton}
         </button>
@@ -217,7 +217,7 @@ export function ShareUploader() {
                 type="button"
                 onClick={() => retry(it)}
                 disabled={it.status !== "error"}
-                className="relative block aspect-square w-full overflow-hidden rounded-xl bg-dusk-100"
+                className="relative block aspect-square w-full overflow-hidden rounded-xl bg-dusk-100 enabled:cursor-pointer"
                 aria-label={it.status === "error" ? "Retry this photo" : undefined}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
