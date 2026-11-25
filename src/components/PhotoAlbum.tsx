@@ -51,6 +51,12 @@ function isAlbum(value: unknown): value is AlbumPage[] {
   );
 }
 
+function photoDisplayUrl(photo: Photo, cover = false) {
+  if (!photo.src.startsWith("/api/album?photo=")) return photo.src;
+  const size = (photo.zoom ?? 1) > 1.5 ? 1440 : cover ? 640 : 960;
+  return `${photo.src}&size=${size}`;
+}
+
 function photoFraming(photo: Photo) {
   return { scale: photo.zoom ?? 1, translate: `${photo.x ?? 0}% ${photo.y ?? 0}%` };
 }
@@ -229,6 +235,26 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
   const first = isSpread ? activeIndex - (activeIndex - firstInside) % 2 : activeIndex;
   const visiblePages = pages.slice(first, first + (isSpread ? 2 : 1));
 
+  const preloadedPhotos = useRef(new Set<string>());
+  useEffect(() => {
+    if (admin || published !== "ready" || !opened &&
+      (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData) return;
+    const count = isSpread ? 2 : 1;
+    const nextPage = opened ? first + count : firstInside;
+    for (const paper of pages.slice(nextPage, nextPage + count)) {
+      for (const photo of paper.photos.slice(0, layouts[paper.layout].pockets)) {
+        if (!photo) continue;
+        const src = photoDisplayUrl(photo);
+        if (preloadedPhotos.current.has(src)) continue;
+        const image = new Image();
+        image.fetchPriority = "low";
+        preloadedPhotos.current.add(src);
+        image.onerror = () => preloadedPhotos.current.delete(src);
+        image.src = src;
+      }
+    }
+  }, [admin, published, opened, first, firstInside, isSpread, pages]);
+
   function updatePage(at: number, update: (item: AlbumPage) => AlbumPage) {
     setPages((current) => current.map((item, offset) => offset === at ? update(item) : item));
   }
@@ -382,7 +408,7 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
                 {photo ? (
                   // Local drafts contain browser data URLs, so no image optimizer is needed.
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={photo.src} alt={photo.name} style={photoFraming(photo)} className="absolute inset-0 size-full object-contain p-1 sm:p-2" />
+                  <img src={admin ? photo.src : photoDisplayUrl(photo)} decoding="async" alt={photo.name} style={photoFraming(photo)} className="absolute inset-0 size-full object-contain p-1 sm:p-2" />
                 ) : editable && <span className="px-1 text-center text-xs font-semibold text-dusk-700 sm:text-sm">+ Add photo</span>}
                 {editable && <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" aria-label={`Choose photo for pocket ${slot + 1}`} disabled={busy} className="absolute inset-0 z-10 size-full cursor-pointer opacity-0" onChange={(event) => {
                   void pickPhotos(at, Array.from(event.target.files ?? []), slot);
@@ -454,7 +480,7 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
               {cover?.photos[0] && (
                 // Local drafts use data URLs.
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={cover.photos[0].src} alt="" style={photoFraming(cover.photos[0])} className="size-full object-contain p-1" />
+                <img src={admin ? cover.photos[0].src : photoDisplayUrl(cover.photos[0], true)} fetchPriority="high" alt="" style={photoFraming(cover.photos[0])} className="size-full object-contain p-1" />
               )}
             </span>
             {cover?.caption && <span className="wrap-anywhere font-serif text-sm uppercase tracking-wider">{cover.caption}</span>}

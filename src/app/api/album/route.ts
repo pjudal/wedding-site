@@ -1,3 +1,4 @@
+import sharp from "sharp";
 import { randomUUID } from "node:crypto";
 import { readAlbumObject, writeAlbumObject } from "@/lib/photos";
 
@@ -18,14 +19,22 @@ function validManifest(pages: unknown): boolean {
 }
 
 export async function GET(request: Request) {
-  const id = new URL(request.url).searchParams.get("photo");
+  const params = new URL(request.url).searchParams;
+  const id = params.get("photo");
+  const size = Number(params.get("size"));
+  const optimized = id !== null && [640, 960, 1440].includes(size);
   if (id !== null && !photoId.test(id)) return new Response(null, { status: 404 });
   try {
     const object = await readAlbumObject(id ?? "published.json");
     if (!object) return id ? new Response(null, { status: 404 }) : Response.json(null, { headers: { "Cache-Control": "no-store" } });
-    return new Response(object.body, {
+    const body = optimized
+      ? new Uint8Array(await sharp(Buffer.from(await object.arrayBuffer()))
+          .resize({ width: size, height: size, fit: "inside", withoutEnlargement: true })
+          .webp({ quality: 80 }).toBuffer())
+      : object.body;
+    return new Response(body, {
       headers: {
-        "Content-Type": id ? "image/jpeg" : "application/json",
+        "Content-Type": optimized ? "image/webp" : id ? "image/jpeg" : "application/json",
         "Cache-Control": id ? "public, max-age=31536000, immutable" : "no-store",
         "X-Content-Type-Options": "nosniff",
       },
