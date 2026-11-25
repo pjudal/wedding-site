@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -9,14 +9,26 @@ import { site, weddingTabs } from "@/content";
 export function Nav() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
+  const [heroTitlePassed, setHeroTitlePassed] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
+  const compactBrand = pathname === "/" && !heroTitlePassed;
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+    const heroTitle = pathname === "/" ? document.getElementById("wedding-hero-title") : null;
+    const updateHeader = () => {
+      setScrolled(window.scrollY > 40);
+      setHeroTitlePassed(Boolean(heroTitle && navRef.current &&
+        heroTitle.getBoundingClientRect().bottom <= navRef.current.getBoundingClientRect().bottom));
+    };
+    updateHeader();
+    window.addEventListener("scroll", updateHeader, { passive: true });
+    window.addEventListener("resize", updateHeader);
+    return () => {
+      window.removeEventListener("scroll", updateHeader);
+      window.removeEventListener("resize", updateHeader);
+    };
+  }, [pathname]);
 
   return (
     <header
@@ -24,11 +36,11 @@ export function Nav() {
         pathname !== "/" || scrolled || open ? "bg-cream/85 shadow-[0_1px_0_rgba(38,56,74,0.08)] backdrop-blur-md" : "bg-transparent"
       }`}
     >
-      <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 md:px-8">
-        <Link href="/" aria-label="Wedding home" onClick={() => setOpen(false)} className="font-serif text-2xl font-medium tracking-wide text-dusk-900">
-          {site.coupleA[0]}
-          <span className="mx-1 italic text-dusk-500">&amp;</span>
-          {site.coupleB[0]}
+      <nav ref={navRef} className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 md:px-8">
+        <Link href="/" aria-label="Wedding home" onClick={() => setOpen(false)} className="whitespace-nowrap font-serif text-2xl font-medium tracking-wide text-dusk-900">
+          {compactBrand ? site.coupleA[0] : site.coupleA}
+          <span className="mx-1 italic text-dusk-500">{compactBrand ? "&" : " & "}</span>
+          {compactBrand ? site.coupleB[0] : site.coupleB}
         </Link>
 
         <div className="hidden items-center gap-5 lg:flex">

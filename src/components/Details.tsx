@@ -62,7 +62,7 @@ export function Details() {
             <h2 className="font-sans text-xl font-medium leading-tight sm:text-3xl">
               <span className="inline-block rounded-md bg-butter-200 px-3 py-1 text-dusk-950">{detailHeadings.date}</span>
             </h2>
-            <p className="mt-4 font-typewriter text-base font-bold leading-snug sm:text-lg">
+            <p className="mt-4 font-serif text-base font-bold italic leading-snug sm:text-lg">
               The two donuts back in 2015 paid off!
             </p>
             <p className="mt-4 font-serif text-5xl font-semibold leading-none text-white [text-shadow:0_1px_3px_#26384a] sm:text-6xl 2xl:text-8xl">

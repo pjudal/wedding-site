@@ -88,7 +88,7 @@ export const weddingPages = {
   "wedding-details": { title: "Sun, Sand, and Schedule" },
   "our-story": { title: "Firsts & Favorites" },
   travel: { title: "Pack Your Bags", intro: "From Manila to Bulod, La Union. The ceremony, reception, and after-party will all take place at Bulod." },
-  photos: { title: "Us, Lately", intro: "Photos coming soon." },
+  photos: { title: "Us, Lately" },
   faq: { title: "FAQs" },
   rsvp: { title: "RSVP" },
 };
@@ -135,7 +135,7 @@ export const travelTips = [
 ];
 
 export const detailHeadings = {
-  date: "When We Say “I Do”",
+  date: "The Moment We’ve Waited For",
   venue: "Where forever begins",
   timeline: "How the Day Unfolds",
   dressCode: "Look good, feel good ;)",
