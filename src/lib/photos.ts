@@ -249,7 +249,8 @@ export async function photoSource(
   opts: { thumb?: boolean; download?: boolean } = {},
 ): Promise<{ redirect: string } | { file: Buffer; type: string; disposition?: string }> {
   const key = opts.thumb && photo.thumb ? thumbKey(photo.id) : photo.key;
-  const disposition = opts.download ? `attachment; filename="${downloadName(photo)}"` : undefined;
+  // No spaces or quotes: R2 rejects the signature if the query has a "+"-encoded space. The name is [A-Za-z0-9.-] only.
+  const disposition = opts.download ? `attachment;filename=${downloadName(photo)}` : undefined;
   if (backend() === "r2") {
     const url = new URL(objectUrl(key));
     url.searchParams.set("X-Amz-Expires", "3600");
