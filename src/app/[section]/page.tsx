@@ -41,7 +41,7 @@ export default async function WeddingPage({ params }: PageProps<"/[section]">) {
 
   return (
     <main className="min-h-[70svh] bg-cream pt-16">
-      <div className="mx-auto max-w-5xl px-5 py-16 md:px-8 md:py-24">
+      <div className={`mx-auto py-16 md:px-8 md:py-24 ${section === "photos" ? "max-w-[90rem] px-3" : "max-w-5xl px-5"}`}>
         <header className="text-center">
           <h1 className="font-serif text-5xl text-dusk-900 md:text-7xl">{page.title}</h1>
           {"intro" in page && <p className="mt-4 text-dusk-700">{page.intro}</p>}

@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { useRef, useState, useSyncExternalStore } from "react";
 
 const layouts = {
@@ -52,10 +52,11 @@ export function PhotoAlbum() {
   const [opening, setOpening] = useState(false);
   const [opened, setOpened] = useState(false);
   const [index, setIndex] = useState(0);
-  const [direction, setDirection] = useState(1);
+  const [flip, setFlip] = useState<{ from: number; delta: number } | null>(null);
   const [editing, setEditing] = useState(true);
   const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [loading, setBusy] = useState(false);
+  const busy = loading || flip !== null;
   const reducedMotion = useReducedMotion();
   const importInput = useRef<HTMLInputElement>(null);
   const isSpread = useSyncExternalStore(subscribeToSpread, () => window.matchMedia(spreadQuery).matches, () => false);
@@ -75,14 +76,12 @@ export function PhotoAlbum() {
     if (busy || next < 0 || next >= pages.length) return;
     const ordered = [...pages];
     [ordered[index], ordered[next]] = [ordered[next], ordered[index]];
-    setDirection(delta);
     setPages(ordered);
     setIndex(next);
     setOpened(next > 0 || !cover);
   }
 
   function openAlbum() {
-    setDirection(1);
     setIndex(firstInside);
     setOpening(false);
     setOpened(true);
@@ -91,7 +90,7 @@ export function PhotoAlbum() {
   function turn(delta: number) {
     const next = first + delta * (isSpread ? 2 : 1);
     if (busy || next < firstInside || next >= pages.length) return;
-    setDirection(delta);
+    if (!reducedMotion) setFlip({ from: first, delta });
     setIndex(next);
   }
 
@@ -161,8 +160,41 @@ export function PhotoAlbum() {
     }
   }
 
+  function renderPaper(at: number, leftSide: boolean, editable = editing) {
+    const paper = pages[at];
+    if (!paper) return <div className="album-paper aspect-[3/4]" />;
+    const layout = layouts[paper.layout];
+    return (
+      <div className={`album-paper relative flex aspect-[3/4] min-w-0 flex-col gap-2 overflow-hidden py-4 sm:py-6 ${leftSide ? "pl-4 pr-8 sm:pl-6 sm:pr-11" : "pl-8 pr-4 sm:pl-11 sm:pr-6"}`}>
+        {paper.layout === "cover" && <p className="shrink-0 whitespace-pre-wrap break-words text-center font-serif text-lg font-semibold uppercase leading-tight text-[#58412e] sm:text-2xl">{paper.title}</p>}
+        <div className={`grid min-h-0 flex-1 gap-3 sm:gap-5 ${layout.grid}`}>
+          {Array.from({ length: layout.pockets }, (_, slot) => {
+            const photo = paper.photos[slot];
+            return (
+              <div key={slot} className="relative grid min-h-0 min-w-0 place-items-center overflow-hidden album-pocket rounded-[2px] p-1 focus-within:ring-2 focus-within:ring-dusk-700 sm:p-2">
+                {photo ? (
+                  // Local drafts contain browser data URLs, so no image optimizer is needed.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={photo.src} alt={photo.name} style={{ scale: photo.zoom ?? 1 }} className="absolute inset-0 size-full object-contain p-1 sm:p-2" />
+                ) : editable && <span className="px-1 text-center text-xs font-semibold text-dusk-700 sm:text-sm">+ Add photo</span>}
+                {editable && <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" aria-label={`Choose photo for pocket ${slot + 1}`} disabled={busy} className="absolute inset-0 z-10 size-full cursor-pointer opacity-0" onChange={(event) => {
+                  void pickPhotos(at, Array.from(event.target.files ?? []), slot);
+                  event.currentTarget.value = "";
+                }} />}
+                {editable && photo && <button type="button" aria-label={`Remove photo from pocket ${slot + 1}`} disabled={busy} className="absolute right-1 top-1 z-20 grid size-8 place-items-center rounded-full bg-cream text-xl text-dusk-900 shadow-sm focus-visible:outline-2" onClick={() => {
+                  updatePage(at, (item) => ({ ...item, photos: item.photos.map((entry, position) => position === slot ? null : entry) }));
+                }}>×</button>}
+              </div>
+            );
+          })}
+        </div>
+        {paper.layout === "cover" && <p className="shrink-0 whitespace-pre-wrap break-words text-center font-serif text-sm uppercase text-[#58412e] sm:text-base">{paper.caption}</p>}
+      </div>
+    );
+  }
+
   return (
-    <section className="mx-auto max-w-4xl" aria-label="Photo album">
+    <section className="mx-auto max-w-[82rem]" aria-label="Photo album">
       <div className="mb-5 flex flex-wrap items-center justify-center gap-3 text-sm text-dusk-900">
         <button type="button" onClick={() => setEditing(!editing)} className="rounded-full bg-butter-200 px-4 py-2 font-semibold">
           {editing ? "Preview album" : "Edit album"}
@@ -178,7 +210,7 @@ export function PhotoAlbum() {
       </div>
       {editing && <p className="mb-5 text-center text-sm text-dusk-700">Choose a layout and fill the pockets. Adding several photos fills empty pockets first, then creates more pages as needed.</p>}
       {!opened ? (
-        <div className="mx-auto max-w-sm [perspective:1200px]">
+        <div className="mx-auto max-w-lg [perspective:1200px]">
           <motion.button
             type="button"
             aria-label="Open album"
@@ -200,12 +232,6 @@ export function PhotoAlbum() {
             </span>
             {cover?.caption && <span className="wrap-anywhere font-serif text-sm uppercase tracking-wider">{cover.caption}</span>}
             {firstInside < pages.length && <span className="text-sm font-semibold underline underline-offset-4">Open album →</span>}
-            <svg aria-hidden="true" viewBox="0 0 110 105" className="album-ribbon pointer-events-none absolute -right-4 top-[44%] w-20 sm:-right-8 sm:w-28">
-              <path d="M54 48C31 26 12 11 8 24 3 38 23 49 49 51 77 16 98 7 99 23c1 14-19 22-43 30" fill="none" stroke="#c6aa77" strokeWidth="11" />
-              <path d="M54 48C31 26 12 11 8 24 3 38 23 49 49 51 77 16 98 7 99 23c1 14-19 22-43 30" fill="none" stroke="#f7e8c5" strokeWidth="8" />
-              <path d="M51 51Q36 65 28 94l12-4 5 8q4-27 13-43 14 13 24 37l4-9 12 2Q83 63 60 49Z" fill="#f0dbaf" stroke="#c6aa77" />
-              <rect x="47" y="44" width="17" height="15" rx="5" fill="#fff0cc" stroke="#c6aa77" transform="rotate(14 55 51)" />
-            </svg>
           </motion.button>
           {editing && cover && (
             <label className="relative mx-auto mt-4 flex min-h-11 w-fit cursor-pointer items-center rounded-full bg-butter-200 px-4 text-sm font-semibold focus-within:outline-2">
@@ -230,62 +256,35 @@ export function PhotoAlbum() {
             <p aria-live="polite" className="font-serif text-xl">{visiblePages.length > 1 ? `Pages ${first + 1}–${first + visiblePages.length}` : `Page ${first + 1}`} of {pages.length}</p>
             <button type="button" className="min-h-11 px-2 font-semibold disabled:opacity-40" disabled={busy || first + visiblePages.length >= pages.length} onClick={() => turn(1)}>Next →</button>
           </div>
-          <div className={`relative mx-auto rounded-sm border border-dusk-700 bg-dusk-500 p-2 shadow-xl [perspective:1600px] sm:p-3 ${isSpread ? "max-w-4xl" : "max-w-lg"}`}>
-            <span aria-hidden="true" className="album-ribbon-tail album-ribbon-tail-left" />
-            <span aria-hidden="true" className="album-ribbon-tail album-ribbon-tail-right" />
-            <AnimatePresence mode="wait" custom={direction}>
-              <motion.div
-                key={`${isSpread}-${first}`}
-                custom={direction}
-                variants={{
-                  entering: (delta: number) => ({ rotateY: reducedMotion ? 0 : delta * -80, opacity: 0 }),
-                  visible: { rotateY: 0, opacity: 1 },
-                  leaving: (delta: number) => ({ rotateY: reducedMotion ? 0 : delta * 80, opacity: 0 }),
-                }}
-                initial="entering"
-                animate="visible"
-                exit="leaving"
-                transition={{ duration: reducedMotion ? 0 : 0.28 }}
-                className={`relative grid ${isSpread ? "grid-cols-2 origin-center" : "grid-cols-1 origin-left"}`}
-              >
-                {visiblePages.map((paper, offset) => {
-                  const at = first + offset;
-                  const leftSide = isSpread && offset === 0;
-                  const layout = layouts[paper.layout];
-                  return (
-                    <div key={at} className={`album-paper relative flex aspect-[3/4] min-w-0 flex-col gap-2 overflow-hidden py-4 sm:py-6 ${leftSide ? "pl-4 pr-8 sm:pl-6 sm:pr-11" : "pl-8 pr-4 sm:pl-11 sm:pr-6"}`}>
-                      <div aria-hidden="true" className={`pointer-events-none absolute inset-y-[8%] z-20 flex flex-col justify-between ${leftSide ? "right-0" : "left-0"}`}>
-                        {Array.from({ length: 6 }, (_, ring) => ring).map((ring) => <span key={ring} className="album-ring w-6 sm:w-8" />)}
-                      </div>
-                      {paper.layout === "cover" && <p className="shrink-0 whitespace-pre-wrap break-words text-center font-serif text-lg font-semibold uppercase leading-tight text-[#58412e] sm:text-2xl">{paper.title}</p>}
-                      <div className={`grid min-h-0 flex-1 gap-3 sm:gap-5 ${layout.grid}`}>
-                        {Array.from({ length: layout.pockets }, (_, slot) => {
-                          const photo = paper.photos[slot];
-                          return (
-                            <div key={slot} className="relative grid min-h-0 min-w-0 place-items-center overflow-hidden album-pocket rounded-[2px] p-1 focus-within:ring-2 focus-within:ring-dusk-700 sm:p-2">
-                              {photo ? (
-                                // Local drafts contain browser data URLs, so no image optimizer is needed.
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={photo.src} alt={photo.name} style={{ scale: photo.zoom ?? 1 }} className="absolute inset-0 size-full object-contain p-1 sm:p-2" />
-                              ) : editing && <span className="px-1 text-center text-xs font-semibold text-dusk-700 sm:text-sm">+ Add photo</span>}
-                              {editing && <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" aria-label={`Choose photo for pocket ${slot + 1}`} disabled={busy} className="absolute inset-0 z-10 size-full cursor-pointer opacity-0" onChange={(event) => {
-                                void pickPhotos(at, Array.from(event.target.files ?? []), slot);
-                                event.currentTarget.value = "";
-                              }} />}
-                              {editing && photo && <button type="button" aria-label={`Remove photo from pocket ${slot + 1}`} disabled={busy} className="absolute right-1 top-1 z-20 grid size-8 place-items-center rounded-full bg-cream text-xl text-dusk-900 shadow-sm focus-visible:outline-2" onClick={() => {
-                                updatePage(at, (item) => ({ ...item, photos: item.photos.map((entry, position) => position === slot ? null : entry) }));
-                              }}>×</button>}
-                            </div>
-                          );
-                        })}
-                      </div>
-                      {paper.layout === "cover" && <p className="shrink-0 whitespace-pre-wrap break-words text-center font-serif text-sm uppercase text-[#58412e] sm:text-base">{paper.caption}</p>}
-                    </div>
-                  );
-                })}
-                {isSpread && visiblePages.length === 1 && <div aria-hidden="true" className="album-paper aspect-[3/4]" />}
-              </motion.div>
-            </AnimatePresence>
+          <div className={`relative mx-auto rounded-sm border border-dusk-700 bg-dusk-500 p-2 shadow-xl [perspective:1600px] sm:p-3 ${isSpread ? "max-w-[82rem]" : "max-w-2xl"}`}>
+            <div className={`relative grid [perspective:1600px] ${isSpread ? "grid-cols-2" : "grid-cols-1"}`}>
+              {isSpread ? (
+                <>
+                  {renderPaper(flip?.delta === 1 ? flip.from : first, true)}
+                  {renderPaper(flip?.delta === -1 ? flip.from + 1 : first + 1, false)}
+                </>
+              ) : renderPaper(first, false)}
+              <div aria-hidden="true" className={`album-binding ${isSpread ? "album-binding-center" : ""}`}>
+                {Array.from({ length: 6 }, (_, ring) => <span key={ring} className="album-ring" />)}
+              </div>
+              {flip && (
+                <motion.div
+                  aria-hidden="true"
+                  className={`pointer-events-none absolute inset-y-0 z-20 [transform-style:preserve-3d] ${isSpread ? "w-1/2" : "w-full"} ${isSpread && flip.delta === 1 ? "right-0 origin-left" : isSpread ? "left-0 origin-right" : "left-0 origin-left"}`}
+                  initial={{ rotateY: 0 }}
+                  animate={{ rotateY: -flip.delta * (isSpread ? 180 : 92) }}
+                  transition={{ duration: 0.64, ease: [0.4, 0, 0.2, 1] }}
+                  onAnimationComplete={() => setFlip(null)}
+                >
+                  <div className="absolute inset-0 [backface-visibility:hidden]">
+                    {renderPaper(flip.from + (isSpread && flip.delta === 1 ? 1 : 0), isSpread && flip.delta === -1, false)}
+                  </div>
+                  {isSpread && <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                    {renderPaper(first + (flip.delta === -1 ? 1 : 0), flip.delta === 1, false)}
+                  </div>}
+                </motion.div>
+              )}
+            </div>
           </div>
         </>
       )}
@@ -294,7 +293,6 @@ export function PhotoAlbum() {
           <label className="flex items-center gap-2 font-semibold">Editing page
             <select value={index} disabled={busy} className="rounded-md border border-dusk-300 bg-white p-2" onChange={(event) => {
               const next = Number(event.target.value);
-              setDirection(next > index ? 1 : -1);
               setIndex(next);
               setOpened(next > 0 || !cover);
             }}>
@@ -322,7 +320,6 @@ export function PhotoAlbum() {
           <button type="button" disabled={busy || index === pages.length - 1} className="min-h-11 px-2 underline disabled:opacity-40" onClick={() => movePage(1)}>Move later</button>
           <button type="button" disabled={busy} className="min-h-11 rounded-full bg-dusk-100 px-4 font-semibold" onClick={() => {
             setPages((current) => [...current, { layout: "pair", photos: [] }]);
-            setDirection(1);
             setIndex(pages.length);
             setOpened(true);
           }}>+ Add page</button>
