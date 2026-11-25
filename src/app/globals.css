@@ -234,14 +234,10 @@ body:has(dialog[open]) {
 .album-binding {
   position: absolute;
   z-index: 30;
-  inset-block: 8%;
+  inset-block: 9%;
   left: 0;
   width: clamp(1.55rem, 4vw, 3.15rem);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
   pointer-events: none;
-  background: linear-gradient(90deg, #795137, #f0cc9b, #936448) center / 3px 100% no-repeat;
 }
 
 .album-binding-center {
@@ -250,29 +246,10 @@ body:has(dialog[open]) {
 }
 
 .album-ring {
-  position: relative;
-  display: block;
-  height: clamp(0.55rem, 1.2vw, 0.85rem);
-  isolation: isolate;
-  border-radius: 999px;
-  border: 1px solid #82502f;
-  background: linear-gradient(#754024, #cf9561 24%, #fff1c7 45%, #e0ad75 62%, #8d542f);
-  box-shadow: 0 2px 3px rgb(68 39 21 / 42%);
-}
-
-.album-ring::before,
-.album-ring::after {
   position: absolute;
-  z-index: -1;
-  top: 50%;
-  width: 28%;
-  aspect-ratio: 1;
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: hidden;
   transform: translateY(-50%);
-  content: "";
-  border-radius: 50%;
-  border: 1px solid #805337;
-  background: radial-gradient(circle at 38% 26%, #f7d8a3, #a4714b 54%, #5d3825 78%);
 }
-
-.album-ring::before { left: -1px; }
-.album-ring::after { right: -1px; }

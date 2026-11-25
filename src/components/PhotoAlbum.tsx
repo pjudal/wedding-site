@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 const layouts = {
   cover: { name: "Cover photo and text", pockets: 1, grid: "grid-cols-1 grid-rows-1" },
@@ -14,10 +14,13 @@ const layouts = {
 };
 
 type Layout = keyof typeof layouts;
-type Photo = { src: string; name: string; zoom?: number };
+type Photo = { src: string; name: string; zoom?: number; x?: number; y?: number };
 type AlbumPage = { layout: Layout; photos: (Photo | null)[]; title?: string; caption?: string };
 
 const firstPages: AlbumPage[] = [{ layout: "cover", photos: [], title: "Before we say I do", caption: "PJ & Jedah" }, { layout: "pair", photos: [] }, { layout: "six", photos: [] }];
+
+// Vertical bounds of the six rings in the supplied 245 × 1350 artwork.
+const binderRings = [[3, 63], [201, 60], [396, 59], [899, 64], [1088, 64], [1273, 66]] as const;
 
 const spreadQuery = "(min-width: 768px) and (orientation: landscape)";
 
@@ -43,12 +46,101 @@ function isAlbum(value: unknown): value is AlbumPage[] {
     page.photos.every((photo: Photo | null) => photo === null ||
       (photo && typeof photo.name === "string" && typeof photo.src === "string" &&
         (photo.zoom === undefined || (Number.isFinite(photo.zoom) && photo.zoom >= 0.5 && photo.zoom <= 3)) &&
+        [photo.x, photo.y].every((offset) => offset === undefined || (Number.isFinite(offset) && Math.abs(offset) <= 100)) &&
         /^data:image\/(jpeg|png|webp|gif|avif);base64,/i.test(photo.src))),
   );
 }
 
+function photoFraming(photo: Photo) {
+  return { scale: photo.zoom ?? 1, translate: `${photo.x ?? 0}% ${photo.y ?? 0}%` };
+}
+
+const framingControls = [
+  { key: "zoom", label: "Zoom", min: 0.5, max: 3, step: 0.05, initial: 1 },
+  { key: "x", label: "Left / right", min: -100, max: 100, step: 1, initial: 0 },
+  { key: "y", label: "Up / down", min: -100, max: 100, step: 1, initial: 0 },
+] as const;
+
+// Keep these identifiers stable across deployments so visual updates can reopen drafts.
+const draftStore = "drafts";
+const draftKey = "us-lately";
+
+function openAlbumStorage(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open("wedding-photo-album", 1);
+    request.onupgradeneeded = () => request.result.createObjectStore(draftStore);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function readAlbumDraft(db: IDBDatabase): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    const request = db.transaction(draftStore).objectStore(draftStore).get(draftKey);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
 export function PhotoAlbum() {
   const [pages, setPages] = useState(firstPages);
+  const [draftStatus, setDraftStatus] = useState<"loading" | "ready" | "unavailable">("loading");
+  const [savedPages, setSavedPages] = useState(firstPages);
+  const [saveFailed, setSaveFailed] = useState(false);
+  const storage = useRef<IDBDatabase | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    let connection: IDBDatabase | undefined;
+    async function restoreDraft() {
+      try {
+        connection = await openAlbumStorage();
+        if (!active) {
+          connection.close();
+          return;
+        }
+        const draft = await readAlbumDraft(connection);
+        if (!active) return;
+        if (draft !== undefined && !isAlbum(draft)) throw new Error("Unreadable album draft");
+        if (isAlbum(draft)) {
+          setPages(draft);
+          setSavedPages(draft);
+        }
+        storage.current = connection;
+        setDraftStatus("ready");
+      } catch {
+        connection?.close();
+        if (active) setDraftStatus("unavailable");
+      }
+    }
+    void restoreDraft();
+    return () => {
+      active = false;
+      connection?.close();
+      storage.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (draftStatus !== "ready" || pages === savedPages || !storage.current) return;
+    let active = true;
+    try {
+      const transaction = storage.current.transaction(draftStore, "readwrite");
+      transaction.objectStore(draftStore).put(pages, draftKey);
+      transaction.oncomplete = () => {
+        if (active) {
+          setSavedPages(pages);
+          setSaveFailed(false);
+        }
+      };
+      transaction.onabort = () => {
+        if (active) setSaveFailed(true);
+      };
+    } catch {
+      queueMicrotask(() => { if (active) setSaveFailed(true); });
+    }
+    return () => { active = false; };
+  }, [draftStatus, pages, savedPages]);
   const [opening, setOpening] = useState(false);
   const [opened, setOpened] = useState(false);
   const [index, setIndex] = useState(0);
@@ -175,7 +267,7 @@ export function PhotoAlbum() {
                 {photo ? (
                   // Local drafts contain browser data URLs, so no image optimizer is needed.
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={photo.src} alt={photo.name} style={{ scale: photo.zoom ?? 1 }} className="absolute inset-0 size-full object-contain p-1 sm:p-2" />
+                  <img src={photo.src} alt={photo.name} style={photoFraming(photo)} className="absolute inset-0 size-full object-contain p-1 sm:p-2" />
                 ) : editable && <span className="px-1 text-center text-xs font-semibold text-dusk-700 sm:text-sm">+ Add photo</span>}
                 {editable && <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" aria-label={`Choose photo for pocket ${slot + 1}`} disabled={busy} className="absolute inset-0 z-10 size-full cursor-pointer opacity-0" onChange={(event) => {
                   void pickPhotos(at, Array.from(event.target.files ?? []), slot);
@@ -193,6 +285,10 @@ export function PhotoAlbum() {
     );
   }
 
+  if (draftStatus === "loading") {
+    return <p role="status" className="text-center text-sm text-dusk-700">Opening your album draft…</p>;
+  }
+
   return (
     <section className="mx-auto max-w-[82rem]" aria-label="Photo album">
       <div className="mb-5 flex flex-wrap items-center justify-center gap-3 text-sm text-dusk-900">
@@ -208,6 +304,13 @@ export function PhotoAlbum() {
           }} />
         </>}
       </div>
+      <p role="status" className="mb-4 text-center text-sm text-dusk-700">
+        {draftStatus === "unavailable" || saveFailed
+          ? "This browser couldn’t save your draft. Use Save draft to keep a copy before refreshing."
+          : pages !== savedPages
+            ? "Saving draft…"
+            : "Draft saved in this browser."}
+      </p>
       {editing && <p className="mb-5 text-center text-sm text-dusk-700">Choose a layout and fill the pockets. Adding several photos fills empty pockets first, then creates more pages as needed.</p>}
       {!opened ? (
         <div className="mx-auto max-w-lg [perspective:1200px]">
@@ -227,7 +330,7 @@ export function PhotoAlbum() {
               {cover?.photos[0] && (
                 // Local drafts use data URLs.
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={cover.photos[0].src} alt="" style={{ scale: cover.photos[0].zoom ?? 1 }} className="size-full object-contain p-1" />
+                <img src={cover.photos[0].src} alt="" style={photoFraming(cover.photos[0])} className="size-full object-contain p-1" />
               )}
             </span>
             {cover?.caption && <span className="wrap-anywhere font-serif text-sm uppercase tracking-wider">{cover.caption}</span>}
@@ -265,7 +368,11 @@ export function PhotoAlbum() {
                 </>
               ) : renderPaper(first, false)}
               <div aria-hidden="true" className={`album-binding ${isSpread ? "album-binding-center" : ""}`}>
-                {Array.from({ length: 6 }, (_, ring) => <span key={ring} className="album-ring" />)}
+                {binderRings.map(([top, height]) => (
+                  <svg key={top} viewBox={`0 ${top} 245 ${height}`} className="album-ring" style={{ top: `${(top + height / 2) / 13.5}%` }}>
+                    <image href="/album-binder.png" width="245" height="1350" />
+                  </svg>
+                ))}
               </div>
               {flip && (
                 <motion.div
@@ -345,15 +452,20 @@ export function PhotoAlbum() {
         <fieldset className="mx-auto mt-5 grid max-w-lg gap-3 text-sm text-dusk-900">
           <legend className="mb-2 font-semibold">Photo framing · page {index + 1}</legend>
           {page.photos.slice(0, layouts[page.layout].pockets).map((photo, slot) => photo && (
-            <label key={slot} className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
-              {page.layout === "cover" ? "Cover zoom" : `Pocket ${slot + 1} zoom`}
-              <input type="range" min={0.5} max={3} step={0.05} disabled={busy} value={photo.zoom ?? 1} className="min-w-0 accent-dusk-700" onChange={(event) => {
-                const zoom = Number(event.target.value);
-                updatePage(index, (item) => ({ ...item, photos: item.photos.map((entry, position) =>
-                  position === slot && entry ? { ...entry, zoom } : entry) }));
-              }} />
-              <span className="tabular-nums">{Math.round((photo.zoom ?? 1) * 100)}%</span>
-            </label>
+            <fieldset key={slot} className="grid gap-2 rounded-lg border border-dusk-300 px-3 pb-3">
+              <legend className="px-1 font-semibold">{page.layout === "cover" ? "Cover photo" : `Pocket ${slot + 1}`}</legend>
+              {framingControls.map(({ key, label, min, max, step, initial }) => (
+                <label key={key} className="grid grid-cols-[5.5rem_minmax(0,1fr)_3rem] items-center gap-2">
+                  {label}
+                  <input type="range" min={min} max={max} step={step} disabled={busy} value={photo[key] ?? initial} className="min-w-0 accent-dusk-700" onChange={(event) => {
+                    const value = Number(event.target.value);
+                    updatePage(index, (item) => ({ ...item, photos: item.photos.map((entry, position) =>
+                      position === slot && entry ? { ...entry, [key]: value } : entry) }));
+                  }} />
+                  <span className="text-right tabular-nums">{Math.round((photo[key] ?? initial) * (key === "zoom" ? 100 : 1))}%</span>
+                </label>
+              ))}
+            </fieldset>
           ))}
         </fieldset>
       )}
