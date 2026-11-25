@@ -57,6 +57,28 @@ function isAlbum(value: unknown): value is AlbumPage[] {
   );
 }
 
+function AlbumArrow({ direction, disabled, onClick }: {
+  direction: "previous" | "next";
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  const previous = direction === "previous";
+  return (
+    <button
+      type="button"
+      aria-label={previous ? "Previous pages" : "Next pages"}
+      disabled={disabled}
+      onClick={onClick}
+      className="grid size-12 cursor-pointer place-items-center rounded-full bg-butter-50 text-dusk-700 transition-colors enabled:hover:bg-butter-200 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-dusk-700 disabled:cursor-default disabled:opacity-30 sm:size-14"
+    >
+      <svg aria-hidden="true" viewBox="0 0 48 48" className={`size-9 ${previous ? "-scale-x-100" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8 27c10 1 18-2 30-3m-10-8 10 8-9 10" />
+        <path d="M15 11v6m-3-3h6M9 34v5m-2.5-2.5h5" className="stroke-dusk-500" />
+      </svg>
+    </button>
+  );
+}
+
 function PocketCaption({ photo }: { photo?: Photo | null }) {
   if (!photo?.showCaption || !photo.caption?.trim()) return null;
   const scale = (photo.captionSize ?? 100) / 100;
@@ -527,43 +549,51 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
               setOpened(false);
             }}>Close album</button>
           </div>
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-dusk-900">
-            <button type="button" className="min-h-11 px-2 font-semibold disabled:opacity-40" disabled={busy || first === firstInside} onClick={() => turn(-1)}>← Previous</button>
-            <p aria-live="polite" className="font-serif text-xl">{visiblePages.length > 1 ? `Pages ${first + 1}–${first + visiblePages.length}` : `Page ${first + 1}`} of {pages.length}</p>
-            <button type="button" className="min-h-11 px-2 font-semibold disabled:opacity-40" disabled={busy || first + visiblePages.length >= pages.length} onClick={() => turn(1)}>Next →</button>
-          </div>
-          <div className={`relative mx-auto w-full rounded-sm border border-dusk-700 bg-dusk-500 p-2 shadow-xl [perspective:1600px] sm:p-3 ${isSpread ? "max-w-[min(82rem,max(46rem,123svh))]" : "max-w-2xl"}`}>
-            <div className={`relative grid [perspective:1600px] ${isSpread ? "grid-cols-2" : "grid-cols-1"}`}>
-              {isSpread ? (
-                <>
-                  {renderPaper(flip?.delta === 1 ? flip.from : first, true)}
-                  {renderPaper(flip?.delta === -1 ? flip.from + 1 : first + 1, false)}
-                </>
-              ) : renderPaper(first, false)}
-              <div aria-hidden="true" className={`album-binding ${isSpread ? "album-binding-center" : ""}`}>
-                {binderRings.map(([top, height]) => (
-                  <svg key={top} viewBox={`0 ${top} 245 ${height}`} className="album-ring" style={{ top: `${(top + height / 2) / 13.5}%` }}>
-                    <image href="/album-binder.png" width="245" height="1350" />
-                  </svg>
-                ))}
-              </div>
-              {flip && (
-                <motion.div
-                  aria-hidden="true"
-                  className={`pointer-events-none absolute inset-y-0 z-20 [transform-style:preserve-3d] ${isSpread ? "w-1/2" : "w-full"} ${isSpread && flip.delta === 1 ? "right-0 origin-left" : isSpread ? "left-0 origin-right" : "left-0 origin-left"}`}
-                  initial={{ rotateY: 0 }}
-                  animate={{ rotateY: -flip.delta * (isSpread ? 180 : 92) }}
-                  transition={{ duration: 0.64, ease: [0.4, 0, 0.2, 1] }}
-                  onAnimationComplete={() => setFlip(null)}
-                >
-                  <div className="absolute inset-0 [backface-visibility:hidden]">
-                    {renderPaper(flip.from + (isSpread && flip.delta === 1 ? 1 : 0), isSpread && flip.delta === -1, false)}
+          <p aria-live="polite" className="mb-4 text-center font-serif text-xl text-dusk-900">{visiblePages.length > 1 ? `Pages ${first + 1}–${first + visiblePages.length}` : `Page ${first + 1}`} of {pages.length}</p>
+          <div className="mx-auto w-full lg:px-18">
+            <div className={`relative mx-auto w-full ${isSpread ? "max-w-[min(82rem,max(46rem,123svh))]" : "max-w-2xl"}`}>
+              <div className="relative w-full rounded-sm border border-dusk-700 bg-dusk-500 p-2 shadow-xl [perspective:1600px] sm:p-3">
+                <div className={`relative grid [perspective:1600px] ${isSpread ? "grid-cols-2" : "grid-cols-1"}`}>
+                  {isSpread ? (
+                    <>
+                      {renderPaper(flip?.delta === 1 ? flip.from : first, true)}
+                      {renderPaper(flip?.delta === -1 ? flip.from + 1 : first + 1, false)}
+                    </>
+                  ) : renderPaper(first, false)}
+                  <div aria-hidden="true" className={`album-binding ${isSpread ? "album-binding-center" : ""}`}>
+                    {binderRings.map(([top, height]) => (
+                      <svg key={top} viewBox={`0 ${top} 245 ${height}`} className="album-ring" style={{ top: `${(top + height / 2) / 13.5}%` }}>
+                        <image href="/album-binder.png" width="245" height="1350" />
+                      </svg>
+                    ))}
                   </div>
-                  {isSpread && <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)]">
-                    {renderPaper(first + (flip.delta === -1 ? 1 : 0), flip.delta === 1, false)}
-                  </div>}
-                </motion.div>
-              )}
+                  {flip && (
+                    <motion.div
+                      aria-hidden="true"
+                      className={`pointer-events-none absolute inset-y-0 z-20 [transform-style:preserve-3d] ${isSpread ? "w-1/2" : "w-full"} ${isSpread && flip.delta === 1 ? "right-0 origin-left" : isSpread ? "left-0 origin-right" : "left-0 origin-left"}`}
+                      initial={{ rotateY: 0 }}
+                      animate={{ rotateY: -flip.delta * (isSpread ? 180 : 92) }}
+                      transition={{ duration: 0.64, ease: [0.4, 0, 0.2, 1] }}
+                      onAnimationComplete={() => setFlip(null)}
+                    >
+                      <div className="absolute inset-0 [backface-visibility:hidden]">
+                        {renderPaper(flip.from + (isSpread && flip.delta === 1 ? 1 : 0), isSpread && flip.delta === -1, false)}
+                      </div>
+                      {isSpread && <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                        {renderPaper(first + (flip.delta === -1 ? 1 : 0), flip.delta === 1, false)}
+                      </div>}
+                    </motion.div>
+                  )}
+                </div>
+              </div>
+              <div className="mx-auto mt-4 flex max-w-2xl items-center justify-between px-1 lg:pointer-events-none lg:absolute lg:inset-y-0 lg:-inset-x-17 lg:mt-0 lg:max-w-none">
+                <div className="pointer-events-auto">
+                  <AlbumArrow direction="previous" disabled={busy || first === firstInside} onClick={() => turn(-1)} />
+                </div>
+                <div className="pointer-events-auto">
+                  <AlbumArrow direction="next" disabled={busy || first + visiblePages.length >= pages.length} onClick={() => turn(1)} />
+                </div>
+              </div>
             </div>
           </div>
         </>
