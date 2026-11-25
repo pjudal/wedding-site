@@ -295,8 +295,8 @@ export async function setHidden(id: string, hidden: boolean) {
 }
 
 // The couple’s album is separate from guest uploads.
-export function isAlbumAdmin(key: unknown) {
-  return Boolean(configuredKey("admin")) && isAdminKey(key);
+export function albumRequiresPassword() {
+  return Boolean(configuredKey("admin"));
 }
 
 export async function readAlbumObject(key: string): Promise<Response | null> {

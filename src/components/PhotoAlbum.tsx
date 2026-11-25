@@ -273,7 +273,7 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
   }
 
   async function publishAlbum() {
-    if (!adminKey || busy) return;
+    if (adminKey === undefined || busy) return;
     setBusy(true);
     setError("");
     setPublishNotice("");
