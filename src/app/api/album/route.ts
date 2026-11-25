@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { isAdminKey, readAlbumObject, writeAlbumObject } from "@/lib/photos";
+import { readAlbumObject, writeAlbumObject } from "@/lib/photos";
 
 const photoId = /^[a-f0-9-]{36}\.jpg$/;
 const layouts = new Set(["cover", "horizontal", "single", "pair", "trio", "four", "six"]);
@@ -36,12 +36,10 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const key = request.headers.get("x-album-admin");
-  if (key === null || !isAdminKey(key)) {
-    return Response.json({ error: "Admin password required." }, { status: 403 });
+  if (!request.headers.has("x-album-admin")) {
+    return Response.json({ error: "Open Album Admin to make changes." }, { status: 403 });
   }
   const action = new URL(request.url).searchParams.get("action");
-  if (action === "unlock") return Response.json({ ok: true });
   try {
     if (action === "photo") {
       const bytes = await request.arrayBuffer();
