@@ -2,18 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { photos as copy, site } from "@/content";
-import { useUrlKey } from "@/lib/urlKey";
+import { useAdminKey } from "@/lib/urlKey";
 import { QrCode } from "./QrCode";
 
 /*
- * Printable QR table cards: /photo-cards?k=<admin key>, then Ctrl+P.
+ * Printable QR table cards: /photo-cards (uses the admin password remembered by /photo-admin), then Ctrl+P.
  * Four A6 cards per A4 sheet (cut along the dashed lines). Print at 100% scale, "Background graphics" on.
  */
 export function PrintCards() {
-  const k = useUrlKey();
+  const k = useAdminKey();
   const [shareUrl, setShareUrl] = useState("");
-  const [error, setError] = useState("");
+  const [fetchError, setError] = useState("");
   const [count, setCount] = useState(8);
+  const error = k === "" ? "Sign in on the photo admin page first (/photo-admin), then come back here." : fetchError;
 
   useEffect(() => {
     if (!k) return;

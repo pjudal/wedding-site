@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
 import { Nav } from "@/components/Nav";
 import { Providers } from "@/components/Providers";
+import { SiteChrome } from "@/components/SiteChrome";
 import { site } from "@/content";
 import "./globals.css";
 
@@ -36,16 +37,20 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${cormorant.variable} ${manrope.variable} antialiased`}>
       <body className="flex min-h-dvh flex-col">
         <Providers>
-          <Nav />
+          <SiteChrome>
+            <Nav />
+          </SiteChrome>
           {children}
-          <footer className="mt-auto shrink-0 bg-dusk-900 px-4 py-14 text-center text-dusk-100">
-            <p className="font-serif text-4xl text-cream">
-              {site.coupleA} <span className="italic text-butter-400">&amp;</span> {site.coupleB}
-            </p>
-            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.35em]">
-              {site.shortDate} · {site.venueArea}
-            </p>
-          </footer>
+          <SiteChrome>
+            <footer className="mt-auto shrink-0 bg-dusk-900 px-4 py-14 text-center text-dusk-100">
+              <p className="font-serif text-4xl text-cream">
+                {site.coupleA} <span className="italic text-butter-400">&amp;</span> {site.coupleB}
+              </p>
+              <p className="mt-2 text-xs font-semibold uppercase tracking-[0.35em]">
+                {site.shortDate} · {site.venueArea}
+              </p>
+            </footer>
+          </SiteChrome>
         </Providers>
       </body>
     </html>
