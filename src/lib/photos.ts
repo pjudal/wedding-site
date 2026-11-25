@@ -293,3 +293,38 @@ export async function setHidden(id: string, hidden: boolean) {
     await fs.rm(file, { force: true });
   }
 }
+
+// The couple’s album is separate from guest uploads.
+export function isAlbumAdmin(key: unknown) {
+  return Boolean(configuredKey("admin")) && isAdminKey(key);
+}
+
+export async function readAlbumObject(key: string): Promise<Response | null> {
+  if (backend() === "local") {
+    try {
+      return new Response(new Uint8Array(await fs.readFile(path.join(LOCAL_DIR, "album", key))));
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+      throw error;
+    }
+  }
+  const response = await r2().fetch(objectUrl(`album/${key}`), { cache: "no-store" });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error("Could not read album");
+  return response;
+}
+
+export async function writeAlbumObject(key: string, body: ArrayBuffer, contentType: string) {
+  if (backend() === "local") {
+    const directory = path.join(LOCAL_DIR, "album");
+    await fs.mkdir(directory, { recursive: true });
+    const temporary = path.join(directory, randomBytes(16).toString("hex"));
+    await fs.writeFile(temporary, Buffer.from(body));
+    await fs.rename(temporary, path.join(directory, key));
+    return;
+  }
+  const response = await r2().fetch(objectUrl(`album/${key}`), {
+    method: "PUT", body, headers: { "Content-Type": contentType },
+  });
+  if (!response.ok) throw new Error("Could not save album");
+}

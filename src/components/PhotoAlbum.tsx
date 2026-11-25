@@ -47,7 +47,7 @@ function isAlbum(value: unknown): value is AlbumPage[] {
       (photo && typeof photo.name === "string" && typeof photo.src === "string" &&
         (photo.zoom === undefined || (Number.isFinite(photo.zoom) && photo.zoom >= 0.5 && photo.zoom <= 3)) &&
         [photo.x, photo.y].every((offset) => offset === undefined || (Number.isFinite(offset) && Math.abs(offset) <= 100)) &&
-        /^data:image\/(jpeg|png|webp|gif|avif);base64,/i.test(photo.src))),
+        (/^data:image\/(jpeg|png|webp|gif|avif);base64,/i.test(photo.src) || /^\/api\/album\?photo=[a-f0-9-]{36}\.jpg$/.test(photo.src)))),
   );
 }
 
@@ -82,7 +82,38 @@ function readAlbumDraft(db: IDBDatabase): Promise<unknown> {
   });
 }
 
-export function PhotoAlbum() {
+async function loadPublishedAlbum(signal?: AbortSignal): Promise<AlbumPage[] | null> {
+  const response = await fetch("/api/album", { cache: "no-store", signal });
+  if (!response.ok) throw new Error("Couldn’t load the album.");
+  const data: unknown = await response.json();
+  if (data === null) return null;
+  if (!isAlbum(data)) throw new Error("Couldn’t read the album.");
+  return data;
+}
+
+async function albumJpeg(src: string): Promise<Blob> {
+  const image = new Image();
+  image.src = src;
+  await image.decode();
+  const scale = Math.min(1, 1600 / Math.max(image.naturalWidth, image.naturalHeight));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+  canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("Couldn’t prepare a photo.");
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  return new Promise((resolve, reject) => canvas.toBlob(
+    (file) => file ? resolve(file) : reject(new Error("Couldn’t prepare a photo.")),
+    "image/jpeg", 0.85,
+  ));
+}
+
+export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
+  const admin = adminKey !== undefined;
+  const [published, setPublished] = useState<"loading" | "ready" | "missing" | "failed">("loading");
+  const [publishNotice, setPublishNotice] = useState("");
   const [pages, setPages] = useState(firstPages);
   const [draftStatus, setDraftStatus] = useState<"loading" | "ready" | "unavailable">("loading");
   const [savedPages, setSavedPages] = useState(firstPages);
@@ -90,6 +121,18 @@ export function PhotoAlbum() {
   const storage = useRef<IDBDatabase | null>(null);
 
   useEffect(() => {
+    if (!admin) {
+      const controller = new AbortController();
+      void loadPublishedAlbum(controller.signal).then((album) => {
+        if (!controller.signal.aborted) {
+          if (album) setPages(album);
+          setPublished(album ? "ready" : "missing");
+        }
+      }).catch(() => {
+        if (!controller.signal.aborted) setPublished("failed");
+      });
+      return () => controller.abort();
+    }
     let active = true;
     let connection: IDBDatabase | undefined;
     async function restoreDraft() {
@@ -102,9 +145,11 @@ export function PhotoAlbum() {
         const draft = await readAlbumDraft(connection);
         if (!active) return;
         if (draft !== undefined && !isAlbum(draft)) throw new Error("Unreadable album draft");
-        if (isAlbum(draft)) {
-          setPages(draft);
-          setSavedPages(draft);
+        const restored = isAlbum(draft) ? draft : await loadPublishedAlbum().catch(() => null);
+        if (!active) return;
+        if (restored) {
+          setPages(restored);
+          setSavedPages(restored);
         }
         storage.current = connection;
         setDraftStatus("ready");
@@ -119,10 +164,10 @@ export function PhotoAlbum() {
       connection?.close();
       storage.current = null;
     };
-  }, []);
+  }, [admin]);
 
   useEffect(() => {
-    if (draftStatus !== "ready" || pages === savedPages || !storage.current) return;
+    if (!admin || draftStatus !== "ready" || pages === savedPages || !storage.current) return;
     let active = true;
     try {
       const transaction = storage.current.transaction(draftStore, "readwrite");
@@ -140,12 +185,13 @@ export function PhotoAlbum() {
       queueMicrotask(() => { if (active) setSaveFailed(true); });
     }
     return () => { active = false; };
-  }, [draftStatus, pages, savedPages]);
+  }, [admin, draftStatus, pages, savedPages]);
   const [opening, setOpening] = useState(false);
   const [opened, setOpened] = useState(false);
   const [index, setIndex] = useState(0);
   const [flip, setFlip] = useState<{ from: number; delta: number } | null>(null);
-  const [editing, setEditing] = useState(true);
+  const [editMode, setEditing] = useState(true);
+  const editing = admin && editMode;
   const [error, setError] = useState("");
   const [loading, setBusy] = useState(false);
   const busy = loading || flip !== null;
@@ -226,6 +272,48 @@ export function PhotoAlbum() {
     }
   }
 
+  async function publishAlbum() {
+    if (!adminKey || busy) return;
+    setBusy(true);
+    setError("");
+    setPublishNotice("");
+    const headers = { "x-album-admin": adminKey };
+    try {
+      const uploaded = new Map<string, string>();
+      const manifest: AlbumPage[] = [];
+      for (const item of pages) {
+        const photos: AlbumPage["photos"] = [];
+        for (const photo of item.photos) {
+          if (!photo || photo.src.startsWith("/api/album?photo=")) {
+            photos.push(photo);
+            continue;
+          }
+          let src = uploaded.get(photo.src);
+          if (!src) {
+            const response = await fetch("/api/album?action=photo", {
+              method: "POST", headers, body: await albumJpeg(photo.src),
+            });
+            const result = await response.json();
+            if (!response.ok || typeof result.src !== "string") throw new Error(result.error ?? "Photo upload failed.");
+            src = result.src as string;
+            uploaded.set(photo.src, src);
+          }
+          photos.push({ ...photo, src });
+        }
+        manifest.push({ ...item, photos });
+      }
+      const result = await fetch("/api/album?action=publish", {
+        method: "POST", headers, body: JSON.stringify(manifest),
+      });
+      if (!result.ok) throw new Error((await result.json()).error);
+      setPublishNotice("Album published. Guests can now see it on any device.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn’t publish. Your draft is still here.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function saveDraft() {
     const url = URL.createObjectURL(new Blob([JSON.stringify(pages)], { type: "application/json" }));
     const link = document.createElement("a");
@@ -285,17 +373,25 @@ export function PhotoAlbum() {
     );
   }
 
-  if (draftStatus === "loading") {
+  if (!admin && published !== "ready") {
+    const message = published === "missing" ? "Our photo album is coming soon."
+      : published === "failed" ? "The album couldn’t load. Please try refreshing."
+      : "Opening the album…";
+    return <p role="status" className="text-center text-sm text-dusk-700">{message}</p>;
+  }
+
+  if (admin && draftStatus === "loading") {
     return <p role="status" className="text-center text-sm text-dusk-700">Opening your album draft…</p>;
   }
 
   return (
     <section className="mx-auto max-w-[82rem]" aria-label="Photo album">
-      <div className="mb-5 flex flex-wrap items-center justify-center gap-3 text-sm text-dusk-900">
+      {admin && <div className="mb-5 flex flex-wrap items-center justify-center gap-3 text-sm text-dusk-900">
         <button type="button" onClick={() => setEditing(!editing)} className="rounded-full bg-butter-200 px-4 py-2 font-semibold">
           {editing ? "Preview album" : "Edit album"}
         </button>
         {editing && <>
+          <button type="button" disabled={busy} onClick={() => void publishAlbum()} className="rounded-full bg-dusk-700 px-4 py-2 font-semibold text-white">Publish album</button>
           <button type="button" onClick={saveDraft} className="underline underline-offset-4" disabled={busy}>Save draft</button>
           <button type="button" onClick={() => importInput.current?.click()} className="underline underline-offset-4" disabled={busy}>Open draft</button>
           <input ref={importInput} type="file" accept=".json,application/json" hidden onChange={(event) => {
@@ -303,14 +399,15 @@ export function PhotoAlbum() {
             event.currentTarget.value = "";
           }} />
         </>}
-      </div>
-      <p role="status" className="mb-4 text-center text-sm text-dusk-700">
+      </div>}
+      {admin && <p role="status" className="mb-4 text-center text-sm text-dusk-700">
         {draftStatus === "unavailable" || saveFailed
           ? "This browser couldn’t save your draft. Use Save draft to keep a copy before refreshing."
           : pages !== savedPages
             ? "Saving draft…"
             : "Draft saved in this browser."}
-      </p>
+      </p>}
+      {publishNotice && <p role="status" className="mb-4 text-center text-sm text-dusk-700">{publishNotice}</p>}
       {editing && <p className="mb-5 text-center text-sm text-dusk-700">Choose a layout and fill the pockets. Adding several photos fills empty pockets first, then creates more pages as needed.</p>}
       {!opened ? (
         <div className="mx-auto max-w-lg [perspective:1200px]">
