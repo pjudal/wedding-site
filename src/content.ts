@@ -106,7 +106,7 @@ export const laUnionFavorites = [
   {
     id: "coffee",
     name: "The Coffee Library",
-    pin: { x: 54, y: 58 },
+    pin: { x: 54, y: 52 },
     mapsUrl: "https://www.google.com/maps/search/?api=1&query=The+Coffee+Library+San+Juan%2C+La+Union&query_place_id=ChIJbxXFr-qNkTMRwcGcDMLtdRw",
     photoCredit: { name: "xyzAsia", href: "https://www.xyzasia.com/home/best-philippines-road-trips-circumnavigation-north-luzon" },
   },
