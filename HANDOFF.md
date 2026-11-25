@@ -234,7 +234,9 @@ PJ / Jedah -> /photo-admin -> hide a photo from the big screen (file is kept), p
 - Wording on the upload page, cards and slideshow lives in `photos` in `src/content.ts`.
 - These four pages (`/share`, `/live`, `/photo-admin`, `/photo-cards`) deliberately have **no site menu or footer**: `src/components/SiteChrome.tsx` hides them there. If you add a page that also should stand alone, add it to the list in that file. They are also not linked from the menu on purpose: guests get in through the QR code.
 - Bucket layout: `photos/<timestamp>-<random>--<name, base64url>.jpg`, plus empty `hidden/<id>` markers for hidden photos.
-- Photos only (JPEG, PNG, WebP, max 15 MB after shrinking). No videos, on purpose.
+- Photos only, no videos, on purpose. Guests can pick JPEG, PNG, WebP or **HEIC/HEIF** (iPhone, some Samsungs); everything is
+  converted to JPEG on the phone before upload. HEIC is converted with `heic-to` (~3 MB), loaded only when someone picks a HEIC
+  photo the browser can't read itself, so other guests never download it.
 
 **One-time setup (PJ, needs a Cloudflare login):**
 1. Cloudflare dashboard > R2 > create bucket `pj-jedah-wedding-photos` (location: Automatic). Keep public access **off**.

@@ -14,20 +14,40 @@ const NAME_STORE = "photo-share-name";
 const inputCls =
   "w-full rounded-2xl border border-dusk-100 bg-white px-4 py-3 text-base text-dusk-950 outline-none transition placeholder:text-dusk-300 focus:border-dusk-500 focus:ring-4 focus:ring-dusk-100";
 
+/**
+ * HEIC/HEIF (iPhone's default format, also some Samsungs). Checks the type, the file name and the file's own
+ * header, because many browsers report HEIC files with an empty type.
+ */
+async function isHeic(file: File): Promise<boolean> {
+  if (/^image\/hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name)) return true;
+  try {
+    const head = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+    const text = String.fromCharCode(...head.slice(4, 12));
+    return /^ftyp(heic|heix|hevc|hevx|heim|heis|mif1|msf1)$/.test(text);
+  } catch {
+    return false;
+  }
+}
+
 async function decode(file: File): Promise<ImageBitmap | HTMLImageElement> {
   try {
     return await createImageBitmap(file, { imageOrientation: "from-image" });
-  } catch {
-    // Some browsers (older iOS) only decode certain formats through <img>.
-    const url = URL.createObjectURL(file);
-    try {
-      const img = new Image();
-      img.src = url;
-      await img.decode();
-      return img;
-    } finally {
-      URL.revokeObjectURL(url);
-    }
+  } catch {}
+  // Some browsers (older iOS) only decode certain formats through <img>.
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    return img;
+  } catch (err) {
+    // The browser can't read it. If it's HEIC, convert it here on the phone. The converter (~3 MB)
+    // is only downloaded the first time someone picks a HEIC photo, so everyone else stays fast.
+    if (!(await isHeic(file))) throw err;
+    const { heicTo } = await import("heic-to/next");
+    return await heicTo({ blob: file, type: "bitmap" });
+  } finally {
+    URL.revokeObjectURL(url);
   }
 }
 
@@ -47,7 +67,7 @@ async function prepare(file: File): Promise<Blob> {
     if (blob && blob.size > 0) return blob;
   } catch {}
   if (["image/jpeg", "image/png", "image/webp"].includes(file.type)) return file;
-  throw new Error("This photo format isn't supported. Try sharing it as a JPEG.");
+  throw new Error("We couldn't read this photo. Try taking a screenshot of it and sharing that.");
 }
 
 function put(url: string, blob: Blob, onProgress: (p: number) => void) {
@@ -100,6 +120,11 @@ export function ShareUploader() {
     let blob: Blob;
     try {
       blob = await prepare(item.file);
+      // Show the converted photo (a HEIC original can't be previewed in most browsers).
+      if (blob !== item.file) {
+        URL.revokeObjectURL(item.preview);
+        update(item.id, { preview: URL.createObjectURL(blob) });
+      }
     } catch (err) {
       update(item.id, { status: "error", error: (err as Error).message });
       return;
@@ -195,7 +220,7 @@ export function ShareUploader() {
           onChange={(e) => changeName(e.target.value)}
         />
 
-        <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={onPick} />
+        <input ref={inputRef} type="file" accept="image/*,.heic,.heif" multiple className="hidden" onChange={onPick} />
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
