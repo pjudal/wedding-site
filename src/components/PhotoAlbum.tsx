@@ -110,9 +110,33 @@ async function albumJpeg(src: string): Promise<Blob> {
   ));
 }
 
+async function postAlbum(action: "photo" | "publish", key: string, body: Blob | string) {
+  for (let attempt = 0; ; attempt++) {
+    let response: Response;
+    try {
+      response = await fetch(`/api/album?action=${action}`, {
+        method: "POST",
+        headers: {
+          "x-album-admin": key,
+          "Content-Type": action === "photo" ? "image/jpeg" : "application/json",
+        },
+        body,
+      });
+    } catch (error) {
+      if (attempt === 2) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
+      continue;
+    }
+    if (response.status < 500 || attempt === 2) return response;
+    await response.body?.cancel();
+    await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
+  }
+}
+
 export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
   const admin = adminKey !== undefined;
   const [published, setPublished] = useState<"loading" | "ready" | "missing" | "failed">("loading");
+  const uploadedPhotos = useRef(new Map<string, string>());
   const [publishNotice, setPublishNotice] = useState("");
   const [pages, setPages] = useState(firstPages);
   const [draftStatus, setDraftStatus] = useState<"loading" | "ready" | "unavailable">("loading");
@@ -277,9 +301,8 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
     setBusy(true);
     setError("");
     setPublishNotice("");
-    const headers = { "x-album-admin": adminKey };
     try {
-      const uploaded = new Map<string, string>();
+      const uploaded = uploadedPhotos.current;
       const manifest: AlbumPage[] = [];
       for (const item of pages) {
         const photos: AlbumPage["photos"] = [];
@@ -290,11 +313,12 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
           }
           let src = uploaded.get(photo.src);
           if (!src) {
-            const response = await fetch("/api/album?action=photo", {
-              method: "POST", headers, body: await albumJpeg(photo.src),
-            });
-            const result = await response.json();
-            if (!response.ok || typeof result.src !== "string") throw new Error(result.error ?? "Photo upload failed.");
+            setPublishNotice(`Uploading photos from page ${manifest.length + 1} of ${pages.length}…`);
+            const response = await postAlbum("photo", adminKey, await albumJpeg(photo.src));
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok || typeof result.src !== "string") {
+              throw new Error(`Page ${manifest.length + 1}, pocket ${photos.length + 1}: ${result.error ?? "Photo upload failed."}`);
+            }
             src = result.src as string;
             uploaded.set(photo.src, src);
           }
@@ -302,12 +326,15 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
         }
         manifest.push({ ...item, photos });
       }
-      const result = await fetch("/api/album?action=publish", {
-        method: "POST", headers, body: JSON.stringify(manifest),
-      });
-      if (!result.ok) throw new Error((await result.json()).error);
+      setPublishNotice("Saving album layout…");
+      const result = await postAlbum("publish", adminKey, JSON.stringify(manifest));
+      if (!result.ok) {
+        const failure = await result.json().catch(() => ({}));
+        throw new Error(failure.error ?? "Couldn’t save the album layout.");
+      }
       setPublishNotice("Album published. Guests can now see it on any device.");
     } catch (err) {
+      setPublishNotice("");
       setError(err instanceof Error ? err.message : "Couldn’t publish. Your draft is still here.");
     } finally {
       setBusy(false);

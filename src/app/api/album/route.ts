@@ -60,7 +60,9 @@ export async function POST(request: Request) {
       return Response.json({ ok: true });
     }
     return Response.json({ error: "Unknown album action." }, { status: 400 });
-  } catch {
-    return Response.json({ error: "Could not save the album. Your draft is still on this device." }, { status: 503 });
+  } catch (error) {
+    console.error("Album write failed", action, error);
+    const message = action === "photo" ? "Couldn’t upload a photo." : "Couldn’t save the album layout.";
+    return Response.json({ error: `${message} Your draft is still on this device.` }, { status: 503 });
   }
 }

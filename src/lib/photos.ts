@@ -320,7 +320,11 @@ export async function writeAlbumObject(key: string, body: ArrayBuffer, contentTy
     return;
   }
   const response = await r2().fetch(objectUrl(`album/${key}`), {
-    method: "PUT", body, headers: { "Content-Type": contentType },
+    method: "PUT", body, headers: {
+      "Content-Type": contentType,
+      "Content-Length": String(body.byteLength),
+      "X-Amz-Content-Sha256": createHash("sha256").update(new Uint8Array(body)).digest("hex"),
+    },
   });
-  if (!response.ok) throw new Error("Could not save album");
+  if (!response.ok) throw new Error(`Album storage write failed: HTTP ${response.status}`);
 }
