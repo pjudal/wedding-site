@@ -15,9 +15,9 @@ const layouts = {
 };
 
 type Layout = keyof typeof layouts;
-type Photo = { src: string; name: string; zoom?: number; x?: number; y?: number; caption?: string; showCaption?: boolean };
+type Photo = { src: string; name: string; zoom?: number; x?: number; y?: number; caption?: string; showCaption?: boolean; captionSize?: number };
 
-const pocketHandwriting = localFont({ src: "../assets/astoria.otf", preload: false, display: "swap", variable: "--font-pocket-handwriting" });
+const pocketHandwriting = localFont({ src: "../assets/internet-friends.ttf", preload: false, display: "swap", variable: "--font-pocket-handwriting" });
 type AlbumPage = { layout: Layout; photos: (Photo | null)[]; title?: string; caption?: string };
 
 const firstPages: AlbumPage[] = [{ layout: "cover", photos: [], title: "Before we say I do", caption: "PJ & Jedah" }, { layout: "pair", photos: [] }, { layout: "six", photos: [] }];
@@ -51,6 +51,7 @@ function isAlbum(value: unknown): value is AlbumPage[] {
         (photo.zoom === undefined || (Number.isFinite(photo.zoom) && photo.zoom >= 0.5 && photo.zoom <= 3)) &&
         (photo.caption === undefined || typeof photo.caption === "string" && photo.caption.length <= 80) &&
         (photo.showCaption === undefined || typeof photo.showCaption === "boolean") &&
+        (photo.captionSize === undefined || Number.isInteger(photo.captionSize) && photo.captionSize >= 60 && photo.captionSize <= 160) &&
         [photo.x, photo.y].every((offset) => offset === undefined || (Number.isFinite(offset) && Math.abs(offset) <= 100)) &&
         (/^data:image\/(jpeg|png|webp|gif|avif);base64,/i.test(photo.src) || /^\/api\/album\?photo=[a-f0-9-]{36}\.jpg$/.test(photo.src)))),
   );
@@ -58,8 +59,9 @@ function isAlbum(value: unknown): value is AlbumPage[] {
 
 function PocketCaption({ photo }: { photo?: Photo | null }) {
   if (!photo?.showCaption || !photo.caption?.trim()) return null;
+  const scale = (photo.captionSize ?? 100) / 100;
   return (
-    <span className="pointer-events-none absolute inset-x-2 bottom-2 z-10 mx-auto w-fit max-w-[calc(100%-1rem)] whitespace-pre-wrap rounded-sm bg-cream/95 px-1.5 py-0.5 text-center text-sm leading-tight wrap-anywhere text-dusk-950 shadow-sm [font-family:var(--font-pocket-handwriting),cursive] sm:text-lg">
+    <span style={{ fontSize: `clamp(${0.875 * scale}rem, ${3 * scale}vw, ${1.125 * scale}rem)` }} className="pointer-events-none absolute inset-x-2 bottom-2 z-10 mx-auto w-fit max-w-[calc(100%-1rem)] whitespace-pre-wrap rounded-sm bg-cream/95 px-1.5 py-0.5 text-center leading-tight wrap-anywhere text-dusk-950 shadow-sm [font-family:var(--font-pocket-handwriting),cursive]">
       {photo.caption}
     </span>
   );
@@ -317,6 +319,7 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
             ...selected[0],
             caption: photos[slot]?.caption,
             showCaption: photos[slot]?.showCaption,
+            captionSize: photos[slot]?.captionSize,
           };
         } else {
           for (let pocket = 0; pocket < layouts[item.layout].pockets && selected.length; pocket++) {
@@ -643,14 +646,25 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
                 }} />
                 Show caption
               </label>
-              {photo.showCaption && <label className="grid gap-1">
+              {photo.showCaption && <>
+              <label className="grid gap-1">
                 Caption text
                 <textarea rows={2} maxLength={80} value={photo.caption ?? ""} disabled={busy} className="rounded-md border border-dusk-300 bg-white p-2 text-lg [font-family:var(--font-pocket-handwriting),cursive]" onChange={(event) => {
                   const caption = event.target.value;
                   updatePage(index, (item) => ({ ...item, photos: item.photos.map((entry, position) =>
                     position === slot && entry ? { ...entry, caption } : entry) }));
                 }} />
-              </label>}
+              </label>
+              <label className="grid grid-cols-[5.5rem_minmax(0,1fr)_3rem] items-center gap-2">
+                Text size
+                <input type="range" min={60} max={160} step={5} value={photo.captionSize ?? 100} disabled={busy} className="min-w-0 accent-dusk-700" onChange={(event) => {
+                  const captionSize = Number(event.target.value);
+                  updatePage(index, (item) => ({ ...item, photos: item.photos.map((entry, position) =>
+                    position === slot && entry ? { ...entry, captionSize } : entry) }));
+                }} />
+                <span className="text-right tabular-nums">{photo.captionSize ?? 100}%</span>
+              </label>
+              </>}
             </fieldset>
           ))}
         </fieldset>
