@@ -1,5 +1,6 @@
 "use client";
 
+import localFont from "next/font/local";
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
@@ -14,7 +15,9 @@ const layouts = {
 };
 
 type Layout = keyof typeof layouts;
-type Photo = { src: string; name: string; zoom?: number; x?: number; y?: number };
+type Photo = { src: string; name: string; zoom?: number; x?: number; y?: number; caption?: string; showCaption?: boolean };
+
+const pocketHandwriting = localFont({ src: "../assets/astoria.otf", preload: false, display: "swap", variable: "--font-pocket-handwriting" });
 type AlbumPage = { layout: Layout; photos: (Photo | null)[]; title?: string; caption?: string };
 
 const firstPages: AlbumPage[] = [{ layout: "cover", photos: [], title: "Before we say I do", caption: "PJ & Jedah" }, { layout: "pair", photos: [] }, { layout: "six", photos: [] }];
@@ -46,8 +49,19 @@ function isAlbum(value: unknown): value is AlbumPage[] {
     page.photos.every((photo: Photo | null) => photo === null ||
       (photo && typeof photo.name === "string" && typeof photo.src === "string" &&
         (photo.zoom === undefined || (Number.isFinite(photo.zoom) && photo.zoom >= 0.5 && photo.zoom <= 3)) &&
+        (photo.caption === undefined || typeof photo.caption === "string" && photo.caption.length <= 80) &&
+        (photo.showCaption === undefined || typeof photo.showCaption === "boolean") &&
         [photo.x, photo.y].every((offset) => offset === undefined || (Number.isFinite(offset) && Math.abs(offset) <= 100)) &&
         (/^data:image\/(jpeg|png|webp|gif|avif);base64,/i.test(photo.src) || /^\/api\/album\?photo=[a-f0-9-]{36}\.jpg$/.test(photo.src)))),
+  );
+}
+
+function PocketCaption({ photo }: { photo?: Photo | null }) {
+  if (!photo?.showCaption || !photo.caption?.trim()) return null;
+  return (
+    <span className="pointer-events-none absolute inset-x-2 bottom-2 z-10 mx-auto w-fit max-w-[calc(100%-1rem)] whitespace-pre-wrap rounded-sm bg-cream/95 px-1.5 py-0.5 text-center text-sm leading-tight wrap-anywhere text-dusk-950 shadow-sm [font-family:var(--font-pocket-handwriting),cursive] sm:text-lg">
+      {photo.caption}
+    </span>
   );
 }
 
@@ -299,7 +313,11 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
         const photos = [...item.photos];
         if (slot !== undefined) {
           while (photos.length < slot) photos.push(null);
-          photos[slot] = selected[0];
+          photos[slot] = {
+            ...selected[0],
+            caption: photos[slot]?.caption,
+            showCaption: photos[slot]?.showCaption,
+          };
         } else {
           for (let pocket = 0; pocket < layouts[item.layout].pockets && selected.length; pocket++) {
             if (!photos[pocket]) photos[pocket] = selected.shift()!;
@@ -410,6 +428,7 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={admin ? photo.src : photoDisplayUrl(photo)} decoding="async" alt={photo.name} style={photoFraming(photo)} className="absolute inset-0 size-full object-contain p-1 sm:p-2" />
                 ) : editable && <span className="px-1 text-center text-xs font-semibold text-dusk-700 sm:text-sm">+ Add photo</span>}
+                <PocketCaption photo={photo} />
                 {editable && <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" aria-label={`Choose photo for pocket ${slot + 1}`} disabled={busy} className="absolute inset-0 z-10 size-full cursor-pointer opacity-0" onChange={(event) => {
                   void pickPhotos(at, Array.from(event.target.files ?? []), slot);
                   event.currentTarget.value = "";
@@ -438,7 +457,7 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
   }
 
   return (
-    <section className="mx-auto w-full max-w-[82rem]" aria-label="Photo album">
+    <section className={`${pocketHandwriting.variable} mx-auto w-full max-w-[82rem]`} aria-label="Photo album">
       {admin && <div className="mb-5 flex flex-wrap items-center justify-center gap-3 text-sm text-dusk-900">
         <button type="button" onClick={() => setEditing(!editing)} className="rounded-full bg-butter-200 px-4 py-2 font-semibold">
           {editing ? "Preview album" : "Edit album"}
@@ -482,6 +501,7 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={admin ? cover.photos[0].src : photoDisplayUrl(cover.photos[0], true)} fetchPriority="high" alt="" style={photoFraming(cover.photos[0])} className="size-full object-contain p-1" />
               )}
+              <PocketCaption photo={cover?.photos[0]} />
             </span>
             {cover?.caption && <span className="wrap-anywhere font-serif text-sm uppercase tracking-wider">{cover.caption}</span>}
             {firstInside < pages.length && <span className="text-sm font-semibold underline underline-offset-4">Open album →</span>}
@@ -600,7 +620,7 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
       )}
       {editing && page.photos.slice(0, layouts[page.layout].pockets).some(Boolean) && (
         <fieldset className="mx-auto mt-5 grid max-w-lg gap-3 text-sm text-dusk-900">
-          <legend className="mb-2 font-semibold">Photo framing · page {index + 1}</legend>
+          <legend className="mb-2 font-semibold">Photo framing and captions · page {index + 1}</legend>
           {page.photos.slice(0, layouts[page.layout].pockets).map((photo, slot) => photo && (
             <fieldset key={slot} className="grid gap-2 rounded-lg border border-dusk-300 px-3 pb-3">
               <legend className="px-1 font-semibold">{page.layout === "cover" ? "Cover photo" : `Pocket ${slot + 1}`}</legend>
@@ -615,6 +635,22 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
                   <span className="text-right tabular-nums">{Math.round((photo[key] ?? initial) * (key === "zoom" ? 100 : 1))}%</span>
                 </label>
               ))}
+              <label className="mt-1 flex items-center gap-2">
+                <input type="checkbox" checked={photo.showCaption ?? false} disabled={busy} className="accent-dusk-700" onChange={(event) => {
+                  const showCaption = event.target.checked;
+                  updatePage(index, (item) => ({ ...item, photos: item.photos.map((entry, position) =>
+                    position === slot && entry ? { ...entry, showCaption } : entry) }));
+                }} />
+                Show caption
+              </label>
+              {photo.showCaption && <label className="grid gap-1">
+                Caption text
+                <textarea rows={2} maxLength={80} value={photo.caption ?? ""} disabled={busy} className="rounded-md border border-dusk-300 bg-white p-2 text-lg [font-family:var(--font-pocket-handwriting),cursive]" onChange={(event) => {
+                  const caption = event.target.value;
+                  updatePage(index, (item) => ({ ...item, photos: item.photos.map((entry, position) =>
+                    position === slot && entry ? { ...entry, caption } : entry) }));
+                }} />
+              </label>}
             </fieldset>
           ))}
         </fieldset>

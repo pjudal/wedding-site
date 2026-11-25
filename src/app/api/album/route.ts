@@ -9,11 +9,13 @@ function validManifest(pages: unknown): boolean {
   return Array.isArray(pages) && pages.length > 0 && pages.length <= 200 && pages.every((page) =>
     page && layouts.has(page.layout) && Array.isArray(page.photos) && page.photos.length <= 6 &&
     [page.title, page.caption].every((value) => value === undefined || typeof value === "string" && value.length <= 70) &&
-    page.photos.every((photo: { src: string; name: string; zoom?: number; x?: number; y?: number } | null) =>
+    page.photos.every((photo: { src: string; name: string; zoom?: number; x?: number; y?: number; caption?: string; showCaption?: boolean } | null) =>
       photo === null || (photo && typeof photo.src === "string" &&
       photo.src.startsWith("/api/album?photo=") && photoId.test(photo.src.slice("/api/album?photo=".length)) &&
       typeof photo.name === "string" && photo.name.length <= 255 &&
       (photo.zoom === undefined || Number.isFinite(photo.zoom) && photo.zoom >= 0.5 && photo.zoom <= 3) &&
+      (photo.caption === undefined || typeof photo.caption === "string" && photo.caption.length <= 80) &&
+      (photo.showCaption === undefined || typeof photo.showCaption === "boolean") &&
       [photo.x, photo.y].every((offset) => offset === undefined || Number.isFinite(offset) && Math.abs(offset) <= 100))),
   );
 }
