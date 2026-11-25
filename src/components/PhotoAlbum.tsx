@@ -48,6 +48,8 @@ function isAlbum(value: unknown): value is AlbumPage[] {
 
 export function PhotoAlbum() {
   const [pages, setPages] = useState(firstPages);
+  const [opening, setOpening] = useState(false);
+  const [opened, setOpened] = useState(false);
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState(1);
   const [editing, setEditing] = useState(true);
@@ -57,7 +59,10 @@ export function PhotoAlbum() {
   const importInput = useRef<HTMLInputElement>(null);
   const isSpread = useSyncExternalStore(subscribeToSpread, () => window.matchMedia(spreadQuery).matches, () => false);
   const page = pages[index];
-  const first = isSpread ? index - index % 2 : index;
+  const cover = pages[0].layout === "cover" ? pages[0] : undefined;
+  const firstInside = cover ? 1 : 0;
+  const activeIndex = Math.max(firstInside, index);
+  const first = isSpread ? activeIndex - (activeIndex - firstInside) % 2 : activeIndex;
   const visiblePages = pages.slice(first, first + (isSpread ? 2 : 1));
 
   function updatePage(at: number, update: (item: AlbumPage) => AlbumPage) {
@@ -72,11 +77,19 @@ export function PhotoAlbum() {
     setDirection(delta);
     setPages(ordered);
     setIndex(next);
+    setOpened(next > 0 || !cover);
+  }
+
+  function openAlbum() {
+    setDirection(1);
+    setIndex(firstInside);
+    setOpening(false);
+    setOpened(true);
   }
 
   function turn(delta: number) {
     const next = first + delta * (isSpread ? 2 : 1);
-    if (busy || next < 0 || next >= pages.length) return;
+    if (busy || next < firstInside || next >= pages.length) return;
     setDirection(delta);
     setIndex(next);
   }
@@ -138,6 +151,7 @@ export function PhotoAlbum() {
       if (!isAlbum(draft)) throw new Error("Invalid draft");
       setPages(draft);
       setIndex(0);
+      setOpened(false);
       setError("");
     } catch {
       setError("Choose an album draft saved from this editor.");
@@ -162,66 +176,110 @@ export function PhotoAlbum() {
         </>}
       </div>
       {editing && <p className="mb-5 text-center text-sm text-dusk-700">Choose a layout and fill the pockets. Adding several photos fills empty pockets first, then creates more pages as needed.</p>}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-dusk-900">
-        <button type="button" className="min-h-11 px-2 font-semibold disabled:opacity-40" disabled={busy || first === 0} onClick={() => turn(-1)}>← Previous</button>
-        <p aria-live="polite" className="font-serif text-xl">{visiblePages.length > 1 ? `Pages ${first + 1}–${first + visiblePages.length}` : `Page ${first + 1}`} of {pages.length}</p>
-        <button type="button" className="min-h-11 px-2 font-semibold disabled:opacity-40" disabled={busy || first + visiblePages.length >= pages.length} onClick={() => turn(1)}>Next →</button>
-      </div>
-      <div className={`mx-auto rounded-sm border border-[#55796d] bg-[#75978a] p-2 shadow-xl [perspective:1600px] sm:p-3 ${isSpread ? "max-w-4xl" : "max-w-lg"}`}>
-        <AnimatePresence initial={false} mode="wait" custom={direction}>
-          <motion.div
-            key={`${isSpread}-${first}`}
-            custom={direction}
-            variants={{
-              entering: (delta: number) => ({ rotateY: reducedMotion ? 0 : delta * -80, opacity: 0 }),
-              visible: { rotateY: 0, opacity: 1 },
-              leaving: (delta: number) => ({ rotateY: reducedMotion ? 0 : delta * 80, opacity: 0 }),
-            }}
-            initial="entering"
-            animate="visible"
-            exit="leaving"
-            transition={{ duration: reducedMotion ? 0 : 0.28 }}
-            className={`relative grid ${isSpread ? "grid-cols-2 origin-center" : "grid-cols-1 origin-left"}`}
+      {!opened ? (
+        <div className="mx-auto max-w-sm [perspective:1200px]">
+          <motion.button
+            type="button"
+            aria-label="Open album"
+            disabled={busy || opening || firstInside >= pages.length}
+            animate={opening ? { rotateY: -88, opacity: 0.25 } : { rotateY: 0, opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            whileHover={reducedMotion || opening ? undefined : { rotateY: -7 }}
+            onClick={() => reducedMotion ? openAlbum() : setOpening(true)}
+            onAnimationComplete={() => { if (opening) openAlbum(); }}
+            className="album-cover relative flex aspect-[3/4] w-full origin-left cursor-pointer flex-col items-center justify-center gap-4 rounded-r-lg px-10 py-6 text-center text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-dusk-900 disabled:cursor-default sm:gap-6"
           >
-            {visiblePages.map((paper, offset) => {
-              const at = first + offset;
-              const leftSide = isSpread && offset === 0;
-              const layout = layouts[paper.layout];
-              return (
-                <div key={at} className={`album-paper relative flex aspect-[3/4] min-w-0 flex-col gap-2 overflow-hidden py-4 sm:py-6 ${leftSide ? "pl-4 pr-8 sm:pl-6 sm:pr-11" : "pl-8 pr-4 sm:pl-11 sm:pr-6"}`}>
-                  <div aria-hidden="true" className={`pointer-events-none absolute inset-y-[8%] z-20 flex flex-col justify-between ${leftSide ? "right-0" : "left-0"}`}>
-                    {Array.from({ length: 9 }, (_, ring) => ring).map((ring) => <span key={ring} className="h-2 w-6 rounded-full bg-linear-to-b from-[#61594b] via-[#fff9e5] to-[#887966] shadow-sm sm:w-8" />)}
-                  </div>
-                  {paper.layout === "cover" && <p className="shrink-0 whitespace-pre-wrap break-words text-center font-serif text-lg font-semibold uppercase leading-tight text-[#58412e] sm:text-2xl">{paper.title}</p>}
-                  <div className={`grid min-h-0 flex-1 gap-3 sm:gap-5 ${layout.grid}`}>
-                    {Array.from({ length: layout.pockets }, (_, slot) => {
-                      const photo = paper.photos[slot];
-                      return (
-                        <div key={slot} className="relative grid min-h-0 min-w-0 place-items-center overflow-hidden album-pocket rounded-[2px] p-1 focus-within:ring-2 focus-within:ring-dusk-700 sm:p-2">
-                          {photo ? (
-                            // Local drafts contain browser data URLs, so no image optimizer is needed.
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={photo.src} alt={photo.name} className="absolute inset-0 size-full object-contain p-1 sm:p-2" />
-                          ) : editing && <span className="px-1 text-center text-xs font-semibold text-dusk-700 sm:text-sm">+ Add photo</span>}
-                          {editing && <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" aria-label={`Choose photo for pocket ${slot + 1}`} disabled={busy} className="absolute inset-0 z-10 size-full cursor-pointer opacity-0" onChange={(event) => {
-                            void pickPhotos(at, Array.from(event.target.files ?? []), slot);
-                            event.currentTarget.value = "";
-                          }} />}
-                          {editing && photo && <button type="button" aria-label={`Remove photo from pocket ${slot + 1}`} disabled={busy} className="absolute right-1 top-1 z-20 grid size-8 place-items-center rounded-full bg-cream text-xl text-dusk-900 shadow-sm focus-visible:outline-2" onClick={() => {
-                            updatePage(at, (item) => ({ ...item, photos: item.photos.map((entry, position) => position === slot ? null : entry) }));
-                          }}>×</button>}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {paper.layout === "cover" && <p className="shrink-0 whitespace-pre-wrap break-words text-center font-serif text-sm uppercase text-[#58412e] sm:text-base">{paper.caption}</p>}
-                </div>
-              );
-            })}
-            {isSpread && visiblePages.length === 1 && <div aria-hidden="true" className="album-paper aspect-[3/4]" />}
-          </motion.div>
-        </AnimatePresence>
-      </div>
+            <span className="whitespace-pre-wrap wrap-anywhere font-serif text-2xl font-semibold uppercase leading-tight sm:text-3xl">{cover ? cover.title : "Us, Lately"}</span>
+            <span className="album-pocket relative block aspect-[4/5] w-full max-w-44 overflow-hidden bg-[#f1efe6]">
+              {cover?.photos[0] && (
+                // Local drafts use data URLs.
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={cover.photos[0].src} alt="" className="size-full object-contain p-1" />
+              )}
+            </span>
+            {cover?.caption && <span className="wrap-anywhere font-serif text-sm uppercase tracking-wider">{cover.caption}</span>}
+            {firstInside < pages.length && <span className="text-sm font-semibold underline underline-offset-4">Open album →</span>}
+          </motion.button>
+          {editing && cover && (
+            <label className="relative mx-auto mt-4 flex min-h-11 w-fit cursor-pointer items-center rounded-full bg-butter-200 px-4 text-sm font-semibold focus-within:outline-2">
+              {cover.photos[0] ? "Replace cover photo" : "Choose cover photo"}
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" disabled={busy} className="absolute inset-0 size-full cursor-pointer opacity-0" onChange={(event) => {
+                void pickPhotos(0, Array.from(event.target.files ?? []), 0);
+                event.currentTarget.value = "";
+              }} />
+            </label>
+          )}
+        </div>
+      ) : (
+        <>
+          <div className="mb-4 flex justify-center">
+            <button type="button" disabled={busy} className="min-h-11 text-sm font-semibold text-dusk-900 underline underline-offset-4" onClick={() => {
+              setIndex(0);
+              setOpened(false);
+            }}>Close album</button>
+          </div>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-dusk-900">
+            <button type="button" className="min-h-11 px-2 font-semibold disabled:opacity-40" disabled={busy || first === firstInside} onClick={() => turn(-1)}>← Previous</button>
+            <p aria-live="polite" className="font-serif text-xl">{visiblePages.length > 1 ? `Pages ${first + 1}–${first + visiblePages.length}` : `Page ${first + 1}`} of {pages.length}</p>
+            <button type="button" className="min-h-11 px-2 font-semibold disabled:opacity-40" disabled={busy || first + visiblePages.length >= pages.length} onClick={() => turn(1)}>Next →</button>
+          </div>
+          <div className={`mx-auto rounded-sm border border-neutral-800 bg-neutral-900 p-2 shadow-xl [perspective:1600px] sm:p-3 ${isSpread ? "max-w-4xl" : "max-w-lg"}`}>
+            <AnimatePresence mode="wait" custom={direction}>
+              <motion.div
+                key={`${isSpread}-${first}`}
+                custom={direction}
+                variants={{
+                  entering: (delta: number) => ({ rotateY: reducedMotion ? 0 : delta * -80, opacity: 0 }),
+                  visible: { rotateY: 0, opacity: 1 },
+                  leaving: (delta: number) => ({ rotateY: reducedMotion ? 0 : delta * 80, opacity: 0 }),
+                }}
+                initial="entering"
+                animate="visible"
+                exit="leaving"
+                transition={{ duration: reducedMotion ? 0 : 0.28 }}
+                className={`relative grid ${isSpread ? "grid-cols-2 origin-center" : "grid-cols-1 origin-left"}`}
+              >
+                {visiblePages.map((paper, offset) => {
+                  const at = first + offset;
+                  const leftSide = isSpread && offset === 0;
+                  const layout = layouts[paper.layout];
+                  return (
+                    <div key={at} className={`album-paper relative flex aspect-[3/4] min-w-0 flex-col gap-2 overflow-hidden py-4 sm:py-6 ${leftSide ? "pl-4 pr-8 sm:pl-6 sm:pr-11" : "pl-8 pr-4 sm:pl-11 sm:pr-6"}`}>
+                      <div aria-hidden="true" className={`pointer-events-none absolute inset-y-[8%] z-20 flex flex-col justify-between ${leftSide ? "right-0" : "left-0"}`}>
+                        {Array.from({ length: 6 }, (_, ring) => ring).map((ring) => <span key={ring} className="h-2 w-6 rounded-full bg-linear-to-b from-[#494c4b] via-[#fafbf9] to-[#767b7a] shadow-sm sm:w-8" />)}
+                      </div>
+                      {paper.layout === "cover" && <p className="shrink-0 whitespace-pre-wrap break-words text-center font-serif text-lg font-semibold uppercase leading-tight text-[#58412e] sm:text-2xl">{paper.title}</p>}
+                      <div className={`grid min-h-0 flex-1 gap-3 sm:gap-5 ${layout.grid}`}>
+                        {Array.from({ length: layout.pockets }, (_, slot) => {
+                          const photo = paper.photos[slot];
+                          return (
+                            <div key={slot} className="relative grid min-h-0 min-w-0 place-items-center overflow-hidden album-pocket rounded-[2px] p-1 focus-within:ring-2 focus-within:ring-dusk-700 sm:p-2">
+                              {photo ? (
+                                // Local drafts contain browser data URLs, so no image optimizer is needed.
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={photo.src} alt={photo.name} className="absolute inset-0 size-full object-contain p-1 sm:p-2" />
+                              ) : editing && <span className="px-1 text-center text-xs font-semibold text-dusk-700 sm:text-sm">+ Add photo</span>}
+                              {editing && <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" aria-label={`Choose photo for pocket ${slot + 1}`} disabled={busy} className="absolute inset-0 z-10 size-full cursor-pointer opacity-0" onChange={(event) => {
+                                void pickPhotos(at, Array.from(event.target.files ?? []), slot);
+                                event.currentTarget.value = "";
+                              }} />}
+                              {editing && photo && <button type="button" aria-label={`Remove photo from pocket ${slot + 1}`} disabled={busy} className="absolute right-1 top-1 z-20 grid size-8 place-items-center rounded-full bg-cream text-xl text-dusk-900 shadow-sm focus-visible:outline-2" onClick={() => {
+                                updatePage(at, (item) => ({ ...item, photos: item.photos.map((entry, position) => position === slot ? null : entry) }));
+                              }}>×</button>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {paper.layout === "cover" && <p className="shrink-0 whitespace-pre-wrap break-words text-center font-serif text-sm uppercase text-[#58412e] sm:text-base">{paper.caption}</p>}
+                    </div>
+                  );
+                })}
+                {isSpread && visiblePages.length === 1 && <div aria-hidden="true" className="album-paper aspect-[3/4]" />}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </>
+      )}
       {editing && (
         <div className="mt-5 flex flex-wrap items-center justify-center gap-3 text-sm text-dusk-900">
           <label className="flex items-center gap-2 font-semibold">Editing page
@@ -229,6 +287,7 @@ export function PhotoAlbum() {
               const next = Number(event.target.value);
               setDirection(next > index ? 1 : -1);
               setIndex(next);
+              setOpened(next > 0 || !cover);
             }}>
               {pages.map((_, offset) => <option key={offset} value={offset}>{offset + 1}</option>)}
             </select>
@@ -237,6 +296,7 @@ export function PhotoAlbum() {
             Layout
             <select value={page.layout} disabled={busy} className="rounded-md border border-dusk-300 bg-white p-2" onChange={(event) => {
               const nextLayout = event.target.value as Layout;
+              if (index === 0 && nextLayout === "cover") setOpened(false);
               setPages((current) => current.map((item, offset) => offset === index ? { ...item, layout: nextLayout } : item));
             }}>
               {Object.entries(layouts).map(([id, option]) => <option key={id} value={id}>{option.name}</option>)}
@@ -255,6 +315,7 @@ export function PhotoAlbum() {
             setPages((current) => [...current, { layout: "pair", photos: [] }]);
             setDirection(1);
             setIndex(pages.length);
+            setOpened(true);
           }}>+ Add page</button>
         </div>
       )}
