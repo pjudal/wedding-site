@@ -217,17 +217,20 @@ The text sits over the top of the photo, so photos with a light, plain top area 
 How it works:
 
 ```
-QR card on table -> /share?k=PHOTO_KEY (no login) -> phone shrinks each photo to 2560px JPEG (drops GPS/EXIF)
+QR card on table -> /share (no login) -> phone shrinks each photo to 2560px JPEG (drops GPS/EXIF)
    -> /api/photos/sign gives a 15-minute signed URL -> phone uploads straight to Cloudflare R2 (bucket in PJ's account)
-Laptop on projector -> /live?k=PHOTO_KEY -> checks for new photos every 10s, new ones show next, then shuffles through all
-PJ / Jedah -> /photo-admin (type PHOTO_ADMIN_KEY once per device) -> hide a photo from the big screen (file is kept), print cards, links
+Laptop on projector -> /live -> checks for new photos every 10s, new ones show next, then shuffles through all
+PJ / Jedah -> /photo-admin -> hide a photo from the big screen (file is kept), print cards, links
 ```
 
-- **Two keys, both Vercel env vars, never in the repo.** `PHOTO_KEY` is inside the printed QR code, so anyone at the wedding
-  can upload and watch. `PHOTO_ADMIN_KEY` is only for PJ and Jedah. **Don't change `PHOTO_KEY` after the cards are printed**;
-  the printed QR codes would stop working.
-- Locally, nothing needs setting up: photos go to `data/photos` (git-ignored) and the keys are `dev` and `dev-admin`:
-  http://localhost:3000/share?k=dev, http://localhost:3000/live?k=dev, http://localhost:3000/photo-admin (password `dev-admin`). If `.env.local` sets `PHOTO_KEY`/`PHOTO_ADMIN_KEY`, those are used instead.
+- **Passwords are OFF (PJ's choice, 2026-11-25).** `/share`, `/live`, `/photo-admin` and `/photo-cards` open for anyone with the address.
+  They can be turned back on with two optional Vercel env vars (never in the repo), then a redeploy:
+  `PHOTO_KEY` (guests: added to the QR link as `?k=`, needed for `/share` and `/live`) and `PHOTO_ADMIN_KEY`
+  (PJ and Jedah: `/photo-admin` asks for it once per device). Each one is independent; unset = open.
+  **Decide before printing the QR cards.** The card holds the link as it was at print time: adding or changing
+  `PHOTO_KEY` afterwards breaks every printed card.
+- Locally, nothing needs setting up: photos go to `data/photos` (git-ignored) and the pages open at
+  http://localhost:3000/share, /live, /photo-admin, /photo-cards. Set `PHOTO_KEY`/`PHOTO_ADMIN_KEY` in `.env.local` to test with passwords.
 - Wording on the upload page, cards and slideshow lives in `photos` in `src/content.ts`.
 - These four pages (`/share`, `/live`, `/photo-admin`, `/photo-cards`) deliberately have **no site menu or footer**: `src/components/SiteChrome.tsx` hides them there. If you add a page that also should stand alone, add it to the list in that file. They are also not linked from the menu on purpose: guests get in through the QR code.
 - Bucket layout: `photos/<timestamp>-<random>--<name, base64url>.jpg`, plus empty `hidden/<id>` markers for hidden photos.
@@ -240,8 +243,8 @@ PJ / Jedah -> /photo-admin (type PHOTO_ADMIN_KEY once per device) -> hide a phot
    (add the custom domain here too if you add one later).
 3. R2 > Manage API tokens > Create API token: **Object Read & Write**, applied to that one bucket only. Copy the Access Key ID and Secret.
 4. Vercel > Project > Settings > Environment Variables (Production): `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`,
-   `R2_BUCKET`, `PHOTO_KEY` (short random, e.g. 10 letters/digits, keeps the QR simple), `PHOTO_ADMIN_KEY` (long random). Redeploy.
-5. Open `/photo-admin`, type the admin password (the device remembers it) > Print table cards. Test-scan one card, upload a photo, check it on `/live`, hide it, then print.
+   `R2_BUCKET`. Optional passwords: `PHOTO_KEY` (short random, keeps the QR simple), `PHOTO_ADMIN_KEY` (long random). Redeploy.
+5. Open `/photo-admin` > Print table cards. Test-scan one card, upload a photo, check it on `/live`, hide it, then print.
 
 **On the day:** open the slideshow link on the laptop, double-click (or press F) for full screen, plug in the projector, leave it.
 Keep the laptop on power and turn off its sleep timer as a backup (the page also asks the browser to keep the screen awake).

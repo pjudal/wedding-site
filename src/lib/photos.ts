@@ -45,13 +45,13 @@ export function isLocal() {
 
 // ---- access keys ---------------------------------------------------------------------------
 
-// The guest key is in the QR code (upload + slideshow). The admin key is only for PJ and Jedah (hide photos, print cards).
-// In dev they default to "dev" / "dev-admin" so the pages work without any setup.
+// Optional passwords, set as env vars:
+//   PHOTO_KEY        guest password, goes inside the QR code as ?k= (upload + slideshow)
+//   PHOTO_ADMIN_KEY  PJ and Jedah only (photo admin: hide photos, print cards)
+// Not set = that part is open to anyone with the link. Decide before printing the QR cards:
+// the printed link only works with whatever PHOTO_KEY was when it was printed.
 function configuredKey(kind: "guest" | "admin"): string {
-  const v = kind === "guest" ? process.env.PHOTO_KEY : process.env.PHOTO_ADMIN_KEY;
-  if (v) return v;
-  if (process.env.NODE_ENV !== "production") return kind === "guest" ? "dev" : "dev-admin";
-  return ""; // unset in production = locked
+  return (kind === "guest" ? process.env.PHOTO_KEY : process.env.PHOTO_ADMIN_KEY) ?? "";
 }
 
 function same(a: string, b: string) {
@@ -62,12 +62,14 @@ function same(a: string, b: string) {
 
 export function isAdminKey(k: unknown): boolean {
   const admin = configuredKey("admin");
-  return typeof k === "string" && !!admin && same(k, admin);
+  if (!admin) return true;
+  return typeof k === "string" && same(k, admin);
 }
 
 export function isGuestKey(k: unknown): boolean {
   const guest = configuredKey("guest");
-  return typeof k === "string" && ((!!guest && same(k, guest)) || isAdminKey(k));
+  if (!guest) return true;
+  return typeof k === "string" && (same(k, guest) || (!!configuredKey("admin") && isAdminKey(k)));
 }
 
 export function guestKey() {

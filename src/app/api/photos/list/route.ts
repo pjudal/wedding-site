@@ -1,9 +1,12 @@
 import { isAdminKey, isGuestKey, listPhotos } from "@/lib/photos";
 
-// The slideshow polls this. Guests get visible photos only; the admin key also gets hidden ones.
+// The slideshow polls this and only ever gets visible photos.
+// The photo admin asks with ?admin=1 and (if PHOTO_ADMIN_KEY is set) the admin key, and also gets hidden ones.
 export async function GET(request: Request) {
-  const k = new URL(request.url).searchParams.get("k");
-  const admin = isAdminKey(k);
+  const params = new URL(request.url).searchParams;
+  const k = params.get("k");
+  const admin = params.get("admin") === "1" && isAdminKey(k);
+  if (params.get("admin") === "1" && !admin) return Response.json({ error: "forbidden" }, { status: 403 });
   if (!admin && !isGuestKey(k)) return Response.json({ error: "forbidden" }, { status: 403 });
 
   try {

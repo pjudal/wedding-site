@@ -110,7 +110,7 @@ export function ShareUploader() {
         const res = await fetch("/api/photos/sign", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ k, name: nameRef.current, type: blob.type, size: blob.size }),
+          body: JSON.stringify({ k: k ?? "", name: nameRef.current, type: blob.type, size: blob.size }),
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {

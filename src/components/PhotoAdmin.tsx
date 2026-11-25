@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { site } from "@/content";
-import { photoSrc, saveAdminKey, useAdminKey } from "@/lib/urlKey";
+import { forgetAdminKey, keyQuery, photoSrc, saveAdminKey, useAdminKey } from "@/lib/urlKey";
 
 type P = { id: string; name: string; ts: number; hidden: boolean };
 type Links = { shareUrl: string; liveUrl: string };
@@ -11,17 +11,13 @@ const timeFmt = new Intl.DateTimeFormat("en-PH", { timeZone: "Asia/Manila", hour
 
 /**
  * For PJ and Jedah: every uploaded photo, with a one-tap hide from the slideshow.
- * Open /photo-admin and type the admin password once; this device remembers it.
+ * Open /photo-admin. If PHOTO_ADMIN_KEY is set, it asks for it once and this device remembers it.
  */
 export function PhotoAdmin() {
   const k = useAdminKey();
   if (k === null) return <main className="min-h-svh bg-cream" />;
-  if (!k) return <SignIn error={lastAttemptWrong ? "That password isn't right." : ""} />;
-  return <Dashboard k={k} />;
+  return <Dashboard key={k} k={k} />;
 }
-
-// Set when the server rejects a password, so the sign-in box can say so.
-let lastAttemptWrong = false;
 
 function SignIn({ error = "" }: { error?: string }) {
   const [value, setValue] = useState("");
@@ -32,7 +28,6 @@ function SignIn({ error = "" }: { error?: string }) {
         onSubmit={(e) => {
           e.preventDefault();
           if (!value.trim()) return;
-          lastAttemptWrong = false;
           saveAdminKey(value.trim());
         }}
       >
@@ -67,10 +62,11 @@ function Dashboard({ k }: { k: string }) {
   const [busy, setBusy] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const res = await fetch(`/api/photos/list?k=${encodeURIComponent(k)}`, { cache: "no-store" }).catch(() => null);
+    const res = await fetch(`/api/photos/list?admin=1${k ? `&k=${encodeURIComponent(k)}` : ""}`, { cache: "no-store" }).catch(() => null);
     if (!res) return setError("Can't reach the site. Retrying...");
     const data = await res.json().catch(() => ({}));
     if (res.status === 403 || (res.ok && !data.admin)) {
+      forgetAdminKey();
       setDenied(true);
       return;
     }
@@ -81,18 +77,12 @@ function Dashboard({ k }: { k: string }) {
 
   // Remember a working password on this device (also tidies ?k= out of the address bar).
   useEffect(() => {
-    if (list) saveAdminKey(k);
+    if (list && k) saveAdminKey(k);
   }, [list, k]);
 
   useEffect(() => {
-    if (!denied) return;
-    lastAttemptWrong = true;
-    saveAdminKey("");
-  }, [denied]);
-
-  useEffect(() => {
     const first = setTimeout(load, 0);
-    fetch(`/api/photos/info?k=${encodeURIComponent(k)}`)
+    fetch(`/api/photos/info${keyQuery(k)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => d && setLinks(d))
       .catch(() => {});
@@ -103,7 +93,8 @@ function Dashboard({ k }: { k: string }) {
     };
   }, [k, load]);
 
-  if (denied) return <main className="min-h-svh bg-cream" />;
+  // Wrong (or missing) password: ask for it. A blank key means "no password tried yet", so no error then.
+  if (denied) return <SignIn error={k ? "That password isn't right." : ""} />;
 
   async function toggle(p: P) {
     setBusy(p.id);
@@ -125,9 +116,9 @@ function Dashboard({ k }: { k: string }) {
       <div className="mx-auto max-w-5xl">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h1 className="font-serif text-4xl text-dusk-950">Guest photos</h1>
-          <button type="button" onClick={() => saveAdminKey("")} className="text-sm text-dusk-500 underline-offset-4 hover:underline">
+          {k && <button type="button" onClick={() => saveAdminKey("")} className="text-sm text-dusk-500 underline-offset-4 hover:underline">
             Sign out on this device
-          </button>
+          </button>}
         </div>
         <p className="mt-1 text-dusk-700">
           {list

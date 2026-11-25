@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { photos as copy, site } from "@/content";
-import { photoSrc, useUrlKey } from "@/lib/urlKey";
+import { keyQuery, photoSrc, useUrlKey } from "@/lib/urlKey";
 import { QrCode } from "./QrCode";
 
 type P = { id: string; name: string };
@@ -54,14 +54,14 @@ export function Slideshow() {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (k) setShareUrl(`${window.location.origin}/share?k=${encodeURIComponent(k)}`);
+    if (k !== null) setShareUrl(`${window.location.origin}/share${keyQuery(k)}`);
   }, [k]);
 
   // ---- polling ----
   const poll = useCallback(async () => {
-    if (!k) return;
+    if (k === null) return;
     try {
-      const res = await fetch(`/api/photos/list?k=${encodeURIComponent(k)}`, { cache: "no-store" });
+      const res = await fetch(`/api/photos/list${keyQuery(k)}`, { cache: "no-store" });
       if (res.status === 403) {
         setBadKey(true);
         return;
@@ -86,7 +86,7 @@ export function Slideshow() {
   }, [k]);
 
   useEffect(() => {
-    if (!k) return;
+    if (k === null) return;
     const first = setTimeout(poll, 0);
     const t = setInterval(poll, POLL_MS);
     return () => {
@@ -97,7 +97,7 @@ export function Slideshow() {
 
   // ---- slide loop ----
   useEffect(() => {
-    if (!k || !loaded) return;
+    if (k === null || !loaded) return;
     let stopped = false;
     let timer: ReturnType<typeof setTimeout>;
 
@@ -190,7 +190,7 @@ export function Slideshow() {
   if (badKey) {
     return (
       <main className="flex min-h-svh items-center justify-center bg-dusk-950 p-8 text-center text-dusk-100">
-        <p>This slideshow link isn&apos;t valid. Use the full link with the ?k= part.</p>
+        <p>This slideshow link isn&apos;t valid. Scan the QR code again, or use the link from the photo admin page.</p>
       </main>
     );
   }

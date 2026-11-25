@@ -2,26 +2,26 @@
 
 import { useEffect, useState } from "react";
 import { photos as copy, site } from "@/content";
-import { useAdminKey } from "@/lib/urlKey";
+import { keyQuery, useAdminKey } from "@/lib/urlKey";
 import { QrCode } from "./QrCode";
 
 /*
- * Printable QR table cards: /photo-cards (uses the admin password remembered by /photo-admin), then Ctrl+P.
+ * Printable QR table cards: /photo-cards, then Ctrl+P. (If PHOTO_ADMIN_KEY is set, sign in on /photo-admin first.)
  * Four A6 cards per A4 sheet (cut along the dashed lines). Print at 100% scale, "Background graphics" on.
  */
 export function PrintCards() {
   const k = useAdminKey();
   const [shareUrl, setShareUrl] = useState("");
-  const [fetchError, setError] = useState("");
+  const [error, setError] = useState("");
   const [count, setCount] = useState(8);
-  const error = k === "" ? "Sign in on the photo admin page first (/photo-admin), then come back here." : fetchError;
 
   useEffect(() => {
-    if (!k) return;
-    fetch(`/api/photos/info?k=${encodeURIComponent(k)}`)
+    if (k === null) return;
+    fetch(`/api/photos/info${keyQuery(k)}`)
       .then(async (r) => {
         const d = await r.json().catch(() => ({}));
-        if (!r.ok) throw new Error(r.status === 403 ? "This admin link isn't valid." : (d.error ?? "Couldn't load."));
+        if (r.status === 403) throw new Error("Sign in on the photo admin page first (/photo-admin), then come back here.");
+        if (!r.ok) throw new Error(d.error ?? "Couldn't load.");
         setShareUrl(d.shareUrl);
       })
       .catch((e) => setError(e.message));
