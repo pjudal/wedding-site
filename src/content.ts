@@ -184,3 +184,20 @@ export const outfitIdeas = [
     description: "Wear a lightweight button-down with tailored chinos and loafers. Linen and breathable cotton are good choices. Entourage men wear a vest in dusty blue or pastel yellow.",
   },
 ] as const;
+// Guest photo sharing: the QR cards on the tables (/share) and the projector slideshow (/live).
+export const photos = {
+  shareTitle: "Share your photos",
+  shareIntro: "Add the photos you've taken today. They go straight to our album and onto the big screen.",
+  namePrompt: "Your name (optional)",
+  namePlaceholder: "So we know who took them",
+  pickButton: "Choose photos",
+  pickMore: "Add more photos",
+  thanks: "Thank you! Your photos are in.",
+  // Printed table cards
+  cardTitle: "Snap & share",
+  cardBody: "Scan with your phone camera to add your photos to our album and the big screen.",
+  cardFooter: "No app or sign-in needed",
+  // Corner of the slideshow
+  liveCallout: "Scan to share your photos",
+  liveEmpty: "Your photos will appear here",
+};

@@ -124,6 +124,13 @@ GitHub main branch
 | `src/assets/hero.jpg` | Hero background photo |
 | `google/Code.gs` | Copy of the Apps Script inside the Google Sheet (the Sheet holds the real one) |
 | `scripts/seed-local.mjs` | Builds local test data (`npm run seed`) |
+| `src/app/share`, `src/components/ShareUploader.tsx` | Guest photo upload page (the QR code on the tables opens this) |
+| `src/app/live`, `src/components/Slideshow.tsx` | Projector slideshow, auto-refreshing |
+| `src/app/photo-admin`, `src/components/PhotoAdmin.tsx` | PJ and Jedah only: all photos, hide from the slideshow |
+| `src/app/photo-cards`, `src/components/PrintCards.tsx` | Printable QR table cards |
+| `src/app/api/photos/*` | Sign an upload, list, image, hide, links for the cards |
+| `src/lib/photos.ts` | Photo storage: Cloudflare R2 in production, `data/photos` locally |
+| `scripts/download-photos.mjs` | `npm run photos:download`: saves every photo to `data/photos-export` |
 
 ## 3. Safety rules (non-negotiable)
 
@@ -205,6 +212,43 @@ The text sits over the top of the photo, so photos with a light, plain top area 
 4. Put the text in `src/content.ts`, not in the component.
 5. Gallery images go in `src/assets/`. Use `next/image` with a static import so you get automatic resizing and blur placeholders.
 
+### Guest photos (QR cards, upload page, projector slideshow)
+
+How it works:
+
+```
+QR card on table -> /share?k=PHOTO_KEY (no login) -> phone shrinks each photo to 2560px JPEG (drops GPS/EXIF)
+   -> /api/photos/sign gives a 15-minute signed URL -> phone uploads straight to Cloudflare R2 (bucket in PJ's account)
+Laptop on projector -> /live?k=PHOTO_KEY -> checks for new photos every 10s, new ones show next, then shuffles through all
+PJ / Jedah -> /photo-admin?k=PHOTO_ADMIN_KEY -> hide a photo from the big screen (file is kept), print cards, links
+```
+
+- **Two keys, both Vercel env vars, never in the repo.** `PHOTO_KEY` is inside the printed QR code, so anyone at the wedding
+  can upload and watch. `PHOTO_ADMIN_KEY` is only for PJ and Jedah. **Don't change `PHOTO_KEY` after the cards are printed**;
+  the printed QR codes would stop working.
+- Locally, nothing needs setting up: photos go to `data/photos` (git-ignored) and the keys are `dev` and `dev-admin`:
+  http://localhost:3000/share?k=dev, http://localhost:3000/live?k=dev, http://localhost:3000/photo-admin?k=dev-admin.
+- Wording on the upload page, cards and slideshow lives in `photos` in `src/content.ts`.
+- Bucket layout: `photos/<timestamp>-<random>--<name, base64url>.jpg`, plus empty `hidden/<id>` markers for hidden photos.
+- Photos only (JPEG, PNG, WebP, max 15 MB after shrinking). No videos, on purpose.
+
+**One-time setup (PJ, needs a Cloudflare login):**
+1. Cloudflare dashboard > R2 > create bucket `pj-jedah-wedding-photos` (location: Automatic). Keep public access **off**.
+2. Bucket > Settings > CORS policy:
+   `[{"AllowedOrigins":["https://pj-jedah-wedding.vercel.app","http://localhost:3000"],"AllowedMethods":["PUT","GET"],"AllowedHeaders":["content-type"],"MaxAgeSeconds":3600}]`
+   (add the custom domain here too if you add one later).
+3. R2 > Manage API tokens > Create API token: **Object Read & Write**, applied to that one bucket only. Copy the Access Key ID and Secret.
+4. Vercel > Project > Settings > Environment Variables (Production): `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`,
+   `R2_BUCKET`, `PHOTO_KEY` (short random, e.g. 10 letters/digits, keeps the QR simple), `PHOTO_ADMIN_KEY` (long random). Redeploy.
+5. Open `/photo-admin?k=<admin key>` > Print table cards. Test-scan one card, upload a photo, check it on `/live`, hide it, then print.
+
+**On the day:** open the slideshow link on the laptop, double-click (or press F) for full screen, plug in the projector, leave it.
+Keep the laptop on power and turn off its sleep timer as a backup (the page also asks the browser to keep the screen awake).
+A small yellow dot in the top-right corner means the laptop has lost internet; it keeps showing the photos it already has.
+
+**After:** put the four `R2_*` values in `.env.local`, run `npm run photos:download`. Photos land in `data/photos-export/`
+named by time and uploader (hidden ones in `hidden/`). Copy them to Google Photos or Drive by hand if you want them there.
+
 ### Change colors or fonts
 Colors are tokens in `globals.css` (`@theme`). Change a value there and it updates everywhere.
 Fonts are set in `layout.tsx` through `next/font/google`.
@@ -242,3 +286,5 @@ If two guests could match, the guest is asked to type their full name. When a ma
 - [ ] The Sheet's `Log` tab has test rows from setup that can be deleted
 - [ ] Before launch: a full RSVP test on a phone against the live site, then clear the test answers in the Sheet
 - [ ] Optional: custom domain (PJ, through Vercel)
+- [ ] Guest photos: Cloudflare R2 setup + Vercel env vars (section 5, "Guest photos"), then test-scan a printed card
+- [ ] Guest photos: check mobile signal / wifi at the venue; uploads need internet
