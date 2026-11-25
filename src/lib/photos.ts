@@ -15,21 +15,26 @@ import path from "path";
  * Object layout in the bucket:
  *   photos/<id>--<name>.<ext>   the photo. <id> = 13-digit ms timestamp + "-" + random, so keys sort by upload time.
  *                               <name> = uploader's name, base64url (may be empty).
- *   hidden/<id>                 empty marker: photo is hidden from the slideshow (set from the admin page).
+ *   thumbs/<id>.jpg             small preview (made on the phone, ~480px) for the guest gallery and admin grid. Optional:
+ *                               photos uploaded before 2026-11-25 have none, and the full photo is used instead.
+ *   hidden/<id>                 empty marker: photo is hidden from the slideshow and gallery (set from the admin page).
  */
 
 export const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
+export const MAX_THUMB_BYTES = 1024 * 1024;
 export const ALLOWED_TYPES: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
   "image/webp": "webp",
 };
 
-export type Photo = { id: string; name: string; ts: number; hidden: boolean; key: string };
+export type Photo = { id: string; name: string; ts: number; hidden: boolean; thumb: boolean; key: string };
 
 const LOCAL_DIR = path.join(process.cwd(), "data", "photos");
 const ID_RE = /^\d{13}-[a-z0-9]{8}$/;
 const KEY_RE = /^photos\/(\d{13}-[a-z0-9]{8})--([A-Za-z0-9_-]*)\.(jpg|png|webp)$/;
+const THUMB_RE = /^thumbs\/(\d{13}-[a-z0-9]{8})\.jpg$/;
+const thumbKey = (id: string) => `thumbs/${id}.jpg`;
 
 function backend(): "r2" | "local" {
   if (process.env.R2_ACCOUNT_ID && process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY && process.env.R2_BUCKET) {
@@ -95,7 +100,7 @@ export function isPhotoId(id: unknown): id is string {
   return typeof id === "string" && ID_RE.test(id);
 }
 
-function parseKey(key: string): Omit<Photo, "hidden"> | null {
+function parseKey(key: string): Omit<Photo, "hidden" | "thumb"> | null {
   const m = KEY_RE.exec(key);
   if (!m) return null;
   let name = "";
@@ -145,15 +150,8 @@ async function r2ListAll(): Promise<string[]> {
 // ---- public API -----------------------------------------------------------------------------
 
 /** Returns where the browser should PUT the file. Content-Type and Content-Length are part of the signature. */
-export async function createUpload(contentType: string, size: number, name: string) {
-  const ext = ALLOWED_TYPES[contentType];
-  if (!ext) throw new Error("bad type");
-  const id = newId();
-  const key = `photos/${id}--${Buffer.from(name, "utf8").toString("base64url")}.${ext}`;
-
-  if (backend() === "local") {
-    return { id, uploadUrl: `/api/photos/local-upload?key=${encodeURIComponent(key)}` };
-  }
+async function signedPut(key: string, contentType: string, size: number) {
+  if (backend() === "local") return `/api/photos/local-upload?key=${encodeURIComponent(key)}`;
   const url = new URL(objectUrl(key));
   url.searchParams.set("X-Amz-Expires", "900");
   const signed = await r2().sign(url.toString(), {
@@ -161,20 +159,48 @@ export async function createUpload(contentType: string, size: number, name: stri
     headers: { "content-type": contentType, "content-length": String(size) },
     aws: { signQuery: true, allHeaders: true },
   });
-  return { id, uploadUrl: signed.url };
+  return signed.url;
+}
+
+/** Where the browser should PUT the photo (and its small preview). Type and size are part of the signature. */
+export async function createUpload(contentType: string, size: number, name: string, thumbSize?: number) {
+  const ext = ALLOWED_TYPES[contentType];
+  if (!ext) throw new Error("bad type");
+  const id = newId();
+  const key = `photos/${id}--${Buffer.from(name, "utf8").toString("base64url")}.${ext}`;
+  return {
+    id,
+    uploadUrl: await signedPut(key, contentType, size),
+    thumbUploadUrl: thumbSize ? await signedPut(thumbKey(id), "image/jpeg", thumbSize) : undefined,
+  };
 }
 
 export function isUploadKey(key: unknown): key is string {
-  return typeof key === "string" && KEY_RE.test(key);
+  return typeof key === "string" && (KEY_RE.test(key) || THUMB_RE.test(key));
 }
 
 export async function saveLocalUpload(key: string, body: ArrayBuffer) {
-  await fs.mkdir(path.join(LOCAL_DIR, "photos"), { recursive: true });
-  await fs.writeFile(path.join(LOCAL_DIR, key), Buffer.from(body));
+  const file = path.join(LOCAL_DIR, key);
+  await fs.mkdir(path.dirname(file), { recursive: true });
+  await fs.writeFile(file, Buffer.from(body));
+  listCache = null;
 }
 
+// The image route looks photos up by id; a short cache stops a gallery of 200 images from listing the bucket 200 times.
+// Hide/delete clear it on this server; other servers catch up within LIST_TTL_MS.
+const LIST_TTL_MS = 5_000;
+let listCache: { at: number; photos: Promise<Photo[]> } | null = null;
+
 /** All photos, oldest first. Hidden ones are included with hidden=true. */
-export async function listPhotos(): Promise<Photo[]> {
+export async function listPhotos(maxAgeMs = 0): Promise<Photo[]> {
+  if (maxAgeMs && listCache && Date.now() - listCache.at < maxAgeMs) return listCache.photos;
+  const photos = readPhotos();
+  listCache = { at: Date.now(), photos };
+  photos.catch(() => (listCache = null));
+  return photos;
+}
+
+async function readPhotos(): Promise<Photo[]> {
   let keys: string[];
   if (backend() === "r2") {
     keys = await r2ListAll();
@@ -186,35 +212,73 @@ export async function listPhotos(): Promise<Photo[]> {
         return [];
       }
     };
-    keys = [...(await read("photos")), ...(await read("hidden"))];
+    keys = [...(await read("photos")), ...(await read("hidden")), ...(await read("thumbs"))];
   }
   const hidden = new Set(keys.filter((k) => k.startsWith("hidden/")).map((k) => k.slice(7)));
+  const thumbs = new Set(keys.map((k) => THUMB_RE.exec(k)?.[1]).filter(Boolean));
   return keys
     .map(parseKey)
-    .filter((p): p is Omit<Photo, "hidden"> => !!p)
-    .map((p) => ({ ...p, hidden: hidden.has(p.id) }))
+    .filter((p): p is Omit<Photo, "hidden" | "thumb"> => !!p)
+    .map((p) => ({ ...p, hidden: hidden.has(p.id), thumb: thumbs.has(p.id) }))
     .sort((a, b) => a.id.localeCompare(b.id));
 }
 
 export async function findPhoto(id: string): Promise<Photo | undefined> {
-  return (await listPhotos()).find((p) => p.id === id);
+  return (await listPhotos(LIST_TTL_MS)).find((p) => p.id === id);
 }
 
-/** A URL the browser can load the image from (signed, valid 1 hour), or the local file contents. */
-export async function photoSource(photo: Photo): Promise<{ redirect: string } | { file: Buffer; type: string }> {
+/** File name guests get when they download a photo, e.g. "PJ-and-Jedah-2027-03-21-1705-tita-baby-ab12.jpg". */
+export function downloadName(photo: Photo) {
+  const d = new Date(photo.ts + 8 * 3600_000).toISOString(); // Philippine time
+  const who = photo.name
+    .normalize("NFKD")
+    .replace(/[^A-Za-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .toLowerCase()
+    .slice(0, 30);
+  const ext = photo.key.split(".").pop();
+  return `PJ-and-Jedah-${d.slice(0, 10)}-${d.slice(11, 16).replace(":", "")}${who ? `-${who}` : ""}-${photo.id.slice(14, 18)}.${ext}`;
+}
+
+/**
+ * A URL the browser can load the image from (signed, valid 1 hour), or the local file contents.
+ * thumb: the small preview if there is one. download: makes the browser save it instead of showing it.
+ */
+export async function photoSource(
+  photo: Photo,
+  opts: { thumb?: boolean; download?: boolean } = {},
+): Promise<{ redirect: string } | { file: Buffer; type: string; disposition?: string }> {
+  const key = opts.thumb && photo.thumb ? thumbKey(photo.id) : photo.key;
+  const disposition = opts.download ? `attachment; filename="${downloadName(photo)}"` : undefined;
   if (backend() === "r2") {
-    const url = new URL(objectUrl(photo.key));
+    const url = new URL(objectUrl(key));
     url.searchParams.set("X-Amz-Expires", "3600");
+    if (disposition) url.searchParams.set("response-content-disposition", disposition);
     const signed = await r2().sign(url.toString(), { method: "GET", aws: { signQuery: true } });
     return { redirect: signed.url };
   }
-  const ext = photo.key.split(".").pop()!;
+  const ext = key.split(".").pop()!;
   const type = Object.keys(ALLOWED_TYPES).find((t) => ALLOWED_TYPES[t] === ext)!;
-  return { file: await fs.readFile(path.join(LOCAL_DIR, photo.key)), type };
+  return { file: await fs.readFile(path.join(LOCAL_DIR, key)), type, disposition };
+}
+
+/** Permanently removes a photo, its preview and its hidden marker. */
+export async function deletePhoto(photo: Photo) {
+  const keys = [photo.key, thumbKey(photo.id), `hidden/${photo.id}`];
+  listCache = null;
+  if (backend() === "r2") {
+    for (const key of keys) {
+      const res = await r2().fetch(objectUrl(key), { method: "DELETE" });
+      if (!res.ok && res.status !== 404) throw new Error(`R2 delete failed: ${res.status}`);
+    }
+    return;
+  }
+  for (const key of keys) await fs.rm(path.join(LOCAL_DIR, key), { force: true });
 }
 
 export async function setHidden(id: string, hidden: boolean) {
   const key = `hidden/${id}`;
+  listCache = null;
   if (backend() === "r2") {
     const res = await r2().fetch(objectUrl(key), hidden ? { method: "PUT", body: "" } : { method: "DELETE" });
     if (!res.ok && res.status !== 404) throw new Error(`R2 hide failed: ${res.status}`);

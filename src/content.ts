@@ -193,6 +193,14 @@ export const photos = {
   pickButton: "Choose photos",
   pickMore: "Add more photos",
   thanks: "Thank you! Your photos are in.",
+  // Guest gallery (/gallery), linked from the upload page
+  galleryLink: "See everyone's photos",
+  galleryHint: "Browse and save any photo from the day.",
+  galleryTitle: "Everyone's photos",
+  galleryIntro: "Tap a photo to see it bigger and save it.",
+  galleryEmpty: "No photos yet. Be the first to share one!",
+  galleryShareLink: "Add your photos",
+  galleryDownload: "Download",
   // Printed table cards
   cardTitle: "Snap & share",
   cardBody: "Scan with your phone camera to add your photos to our album and the big screen.",

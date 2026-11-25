@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { photos, site } from "@/content";
-import { useUrlKey } from "@/lib/urlKey";
+import { keyQuery, useUrlKey } from "@/lib/urlKey";
 
 type Status = "waiting" | "preparing" | "uploading" | "done" | "error";
 type Item = { id: number; file: File; preview: string; status: Status; progress: number; error: string };
 
 const MAX_EDGE = 2560; // long edge after resizing: plenty for a projector, much faster to upload
+const THUMB_EDGE = 480; // small preview for the guest gallery
 const CONCURRENCY = 2;
 const NAME_STORE = "photo-share-name";
 
@@ -51,8 +52,13 @@ async function decode(file: File): Promise<ImageBitmap | HTMLImageElement> {
   }
 }
 
-/** Resize to MAX_EDGE and re-encode as JPEG. Re-encoding also drops EXIF data such as GPS location. */
-async function prepare(file: File): Promise<Blob> {
+const toJpeg = (canvas: HTMLCanvasElement, q: number) => new Promise<Blob | null>((r) => canvas.toBlob(r, "image/jpeg", q));
+
+/**
+ * Resize to MAX_EDGE and re-encode as JPEG, plus a small preview for the gallery.
+ * Re-encoding also drops EXIF data such as GPS location.
+ */
+async function prepare(file: File): Promise<{ full: Blob; thumb?: Blob }> {
   try {
     const src = await decode(file);
     const w0 = "naturalWidth" in src ? src.naturalWidth : src.width;
@@ -63,10 +69,18 @@ async function prepare(file: File): Promise<Blob> {
     canvas.height = Math.max(1, Math.round(h0 * scale));
     canvas.getContext("2d")!.drawImage(src, 0, 0, canvas.width, canvas.height);
     if ("close" in src) src.close();
-    const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/jpeg", 0.85));
-    if (blob && blob.size > 0) return blob;
+    const full = await toJpeg(canvas, 0.85);
+    if (full && full.size > 0) {
+      const ts = Math.min(1, THUMB_EDGE / Math.max(canvas.width, canvas.height));
+      const small = document.createElement("canvas");
+      small.width = Math.max(1, Math.round(canvas.width * ts));
+      small.height = Math.max(1, Math.round(canvas.height * ts));
+      small.getContext("2d")!.drawImage(canvas, 0, 0, small.width, small.height);
+      const thumb = (await toJpeg(small, 0.8)) ?? undefined;
+      return { full, thumb: thumb && thumb.size > 0 && thumb.size < 1024 * 1024 ? thumb : undefined };
+    }
   } catch {}
-  if (["image/jpeg", "image/png", "image/webp"].includes(file.type)) return file;
+  if (["image/jpeg", "image/png", "image/webp"].includes(file.type)) return { full: file };
   throw new Error("We couldn't read this photo. Try taking a screenshot of it and sharing that.");
 }
 
@@ -118,8 +132,9 @@ export function ShareUploader() {
 
   async function upload(item: Item) {
     let blob: Blob;
+    let thumb: Blob | undefined;
     try {
-      blob = await prepare(item.file);
+      ({ full: blob, thumb } = await prepare(item.file));
       // Show the converted photo (a HEIC original can't be previewed in most browsers).
       if (blob !== item.file) {
         URL.revokeObjectURL(item.preview);
@@ -135,7 +150,7 @@ export function ShareUploader() {
         const res = await fetch("/api/photos/sign", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ k: k ?? "", name: nameRef.current, type: blob.type, size: blob.size }),
+          body: JSON.stringify({ k: k ?? "", name: nameRef.current, type: blob.type, size: blob.size, thumbSize: thumb?.size }),
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
@@ -146,6 +161,8 @@ export function ShareUploader() {
           }
           throw new Error(data.error ?? "Upload failed");
         }
+        // Preview first (tiny), so the photo shows up in the gallery with it. If only the preview fails, carry on.
+        if (thumb && data.thumbUploadUrl) await put(data.thumbUploadUrl, thumb, () => {}).catch(() => {});
         await put(data.uploadUrl, blob, (p) => update(item.id, { progress: p }));
         update(item.id, { status: "done", progress: 1 });
         return;
@@ -275,6 +292,14 @@ export function ShareUploader() {
             {firstError} Tap a photo marked Retry to send it again.
           </p>
         )}
+
+        <a
+          href={`/gallery${keyQuery(k)}`}
+          className="mt-8 block w-full rounded-full border border-dusk-300 px-6 py-3 text-center font-semibold text-dusk-900 transition hover:border-dusk-700 hover:bg-dusk-50"
+        >
+          {photos.galleryLink}
+        </a>
+        <p className="mt-2 text-center text-sm text-dusk-500">{photos.galleryHint}</p>
       </div>
     </main>
   );

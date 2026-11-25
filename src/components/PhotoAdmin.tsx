@@ -5,7 +5,7 @@ import { site } from "@/content";
 import { forgetAdminKey, keyQuery, photoSrc, saveAdminKey, useAdminKey } from "@/lib/urlKey";
 
 type P = { id: string; name: string; ts: number; hidden: boolean };
-type Links = { shareUrl: string; liveUrl: string };
+type Links = { shareUrl: string; liveUrl: string; galleryUrl: string };
 
 const timeFmt = new Intl.DateTimeFormat("en-PH", { timeZone: "Asia/Manila", hour: "numeric", minute: "2-digit" });
 
@@ -108,6 +108,20 @@ function Dashboard({ k }: { k: string }) {
     else setError("Couldn't change that photo. Try again.");
   }
 
+  async function remove(p: P) {
+    const who = p.name ? ` from ${p.name}` : "";
+    if (!window.confirm(`Delete this photo${who} for good? It can't be undone. (Hide just takes it off the screen.)`)) return;
+    setBusy(p.id);
+    const res = await fetch("/api/photos/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ k, id: p.id }),
+    }).catch(() => null);
+    setBusy(null);
+    if (res?.ok) setList((l) => l?.filter((x) => x.id !== p.id) ?? null);
+    else setError("Couldn't delete that photo. Try again.");
+  }
+
   const hiddenCount = list?.filter((p) => p.hidden).length ?? 0;
   const btn = "rounded-full border border-dusk-300 px-4 py-2 font-semibold text-dusk-900 hover:bg-dusk-50";
 
@@ -122,9 +136,9 @@ function Dashboard({ k }: { k: string }) {
         </div>
         <p className="mt-1 text-dusk-700">
           {list
-            ? `${list.length} uploaded${hiddenCount ? `, ${hiddenCount} hidden from the slideshow` : ""}. Updates every 15 seconds.`
+            ? `${list.length} uploaded${hiddenCount ? `, ${hiddenCount} hidden` : ""}. Updates every 15 seconds.`
             : "Loading photos..."}{" "}
-          Hiding only takes a photo off the big screen. The file is kept.
+          Hide takes a photo off the big screen and the guest gallery but keeps it. Delete removes it for good.
         </p>
         <div className="mt-5 flex flex-wrap gap-2 text-sm">
           <a
@@ -140,6 +154,9 @@ function Dashboard({ k }: { k: string }) {
           <a className={`${btn} ${links ? "" : "pointer-events-none opacity-50"}`} href={links?.shareUrl} target="_blank">
             Guest upload page
           </a>
+          <a className={`${btn} ${links ? "" : "pointer-events-none opacity-50"}`} href={links?.galleryUrl} target="_blank">
+            Guest gallery
+          </a>
         </div>
         {error && <p className="mt-4 text-red-700">{error}</p>}
 
@@ -152,20 +169,21 @@ function Dashboard({ k }: { k: string }) {
         <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {list?.map((p) => (
             <li key={p.id} className="overflow-hidden rounded-2xl bg-white shadow-sm">
-              <a href={photoSrc(p.id, k)} target="_blank" className="block aspect-square bg-dusk-100">
+              <a href={photoSrc(p.id, k, { admin: true })} target="_blank" className="block aspect-square bg-dusk-100">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={photoSrc(p.id, k)}
+                  src={photoSrc(p.id, k, { admin: true, thumb: true })}
                   alt=""
                   loading="lazy"
                   className={`h-full w-full object-cover ${p.hidden ? "opacity-30 grayscale" : ""}`}
                 />
               </a>
-              <div className="flex items-center justify-between gap-2 p-2 text-sm">
-                <span className="min-w-0 truncate text-dusk-700">
+              <div className="p-2 text-sm">
+                <p className="truncate px-1 text-dusk-700">
                   {timeFmt.format(p.ts)}
                   {p.name ? ` · ${p.name}` : ""}
-                </span>
+                </p>
+                <span className="mt-1.5 flex justify-between gap-1">
                 <button
                   type="button"
                   disabled={busy === p.id}
@@ -178,6 +196,16 @@ function Dashboard({ k }: { k: string }) {
                 >
                   {p.hidden ? "Show" : "Hide"}
                 </button>
+                <button
+                  type="button"
+                  disabled={busy === p.id}
+                  onClick={() => remove(p)}
+                  aria-label="Delete photo"
+                  className="shrink-0 cursor-pointer rounded-full px-3 py-1 font-semibold text-red-700 transition hover:bg-red-700 hover:text-white disabled:cursor-wait disabled:opacity-60"
+                >
+                  Delete
+                </button>
+                </span>
               </div>
             </li>
           ))}

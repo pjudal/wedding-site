@@ -128,6 +128,7 @@ GitHub main branch
 | `src/app/live`, `src/components/Slideshow.tsx` | Projector slideshow, auto-refreshing |
 | `src/app/photo-admin`, `src/components/PhotoAdmin.tsx` | PJ and Jedah only: all photos, hide from the slideshow |
 | `src/app/photo-cards`, `src/components/PrintCards.tsx` | Printable QR table cards |
+| `src/app/gallery`, `src/components/Gallery.tsx` | Guest gallery: every non-hidden photo, tap to view and download (linked from `/share`) |
 | `src/app/api/photos/*` | Sign an upload, list, image, hide, links for the cards |
 | `src/lib/photos.ts` | Photo storage: Cloudflare R2 in production, `data/photos` locally |
 | `scripts/download-photos.mjs` | `npm run photos:download`: saves every photo to `data/photos-export` |
@@ -212,7 +213,7 @@ The text sits over the top of the photo, so photos with a light, plain top area 
 4. Put the text in `src/content.ts`, not in the component.
 5. Gallery images go in `src/assets/`. Use `next/image` with a static import so you get automatic resizing and blur placeholders.
 
-### Guest photos (QR cards, upload page, projector slideshow)
+### Guest photos (QR cards, upload page, guest gallery, projector slideshow)
 
 How it works:
 
@@ -220,7 +221,8 @@ How it works:
 QR card on table -> /share (no login) -> phone shrinks each photo to 2560px JPEG (drops GPS/EXIF)
    -> /api/photos/sign gives a 15-minute signed URL -> phone uploads straight to Cloudflare R2 (bucket in PJ's account)
 Laptop on projector -> /live -> checks for new photos every 10s, new ones show next, then shuffles through all
-PJ / Jedah -> /photo-admin -> hide a photo from the big screen (file is kept), print cards, links
+Guests -> /gallery (button on /share) -> every non-hidden photo, newest first, tap to view big + Download
+PJ / Jedah -> /photo-admin -> Hide (off the big screen + gallery, file kept) or Delete (gone for good), print cards, links
 ```
 
 - **Passwords are OFF (PJ's choice, 2026-11-25).** `/share`, `/live`, `/photo-admin` and `/photo-cards` open for anyone with the address.
@@ -232,8 +234,11 @@ PJ / Jedah -> /photo-admin -> hide a photo from the big screen (file is kept), p
 - Locally, nothing needs setting up: photos go to `data/photos` (git-ignored) and the pages open at
   http://localhost:3000/share, /live, /photo-admin, /photo-cards. Set `PHOTO_KEY`/`PHOTO_ADMIN_KEY` in `.env.local` to test with passwords.
 - Wording on the upload page, cards and slideshow lives in `photos` in `src/content.ts`.
-- These four pages (`/share`, `/live`, `/photo-admin`, `/photo-cards`) deliberately have **no site menu or footer**: `src/components/SiteChrome.tsx` hides them there. If you add a page that also should stand alone, add it to the list in that file. They are also not linked from the menu on purpose: guests get in through the QR code.
-- Bucket layout: `photos/<timestamp>-<random>--<name, base64url>.jpg`, plus empty `hidden/<id>` markers for hidden photos.
+- These pages (`/share`, `/gallery`, `/live`, `/photo-admin`, `/photo-cards`) deliberately have **no site menu or footer**: `src/components/SiteChrome.tsx` hides them there. If you add a page that also should stand alone, add it to the list in that file. They are also not linked from the menu on purpose: guests get in through the QR code.
+- Bucket layout: `photos/<timestamp>-<random>--<name, base64url>.jpg`, `thumbs/<id>.jpg` (480px preview made on the phone,
+  used by the gallery and admin grid; older uploads have none and fall back to the full photo), plus empty `hidden/<id>` markers.
+- **While `PHOTO_ADMIN_KEY` is unset, anyone who finds `/photo-admin` can hide or delete photos.** Setting it only protects the
+  admin page and does not affect the printed QR cards, so it can be turned on at any time.
 - Photos only, no videos, on purpose. Guests can pick JPEG, PNG, WebP or **HEIC/HEIF** (iPhone, some Samsungs); everything is
   converted to JPEG on the phone before upload. HEIC is converted with `heic-to` (~3 MB), loaded only when someone picks a HEIC
   photo the browser can't read itself, so other guests never download it.

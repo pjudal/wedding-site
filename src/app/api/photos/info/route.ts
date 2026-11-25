@@ -8,5 +8,5 @@ export async function GET(request: Request) {
   const key = guestKey();
   const q = key ? `?k=${encodeURIComponent(key)}` : "";
   const origin = process.env.PUBLIC_SITE_URL?.replace(/\/$/, "") || url.origin;
-  return Response.json({ shareUrl: `${origin}/share${q}`, liveUrl: `${origin}/live${q}` });
+  return Response.json({ shareUrl: `${origin}/share${q}`, liveUrl: `${origin}/live${q}`, galleryUrl: `${origin}/gallery${q}` });
 }

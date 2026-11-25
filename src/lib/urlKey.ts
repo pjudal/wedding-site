@@ -10,9 +10,17 @@ export function useUrlKey(): string | null {
   return useSyncExternalStore(noSubscribe, readKey, () => null);
 }
 
-/** Image URL for a photo id. Stable, so the browser can cache it. */
-export function photoSrc(id: string, k: string | null) {
-  return `/api/photos/img?id=${encodeURIComponent(id)}${k ? `&k=${encodeURIComponent(k)}` : ""}`;
+/**
+ * Image URL for a photo id. Stable, so the browser can cache it.
+ * thumb: small preview. download: save instead of show. admin: photo admin (can see hidden photos).
+ */
+export function photoSrc(id: string, k: string | null, opts: { thumb?: boolean; download?: boolean; admin?: boolean } = {}) {
+  let url = `/api/photos/img?id=${encodeURIComponent(id)}`;
+  if (k) url += `&k=${encodeURIComponent(k)}`;
+  if (opts.thumb) url += "&size=thumb";
+  if (opts.download) url += "&download=1";
+  if (opts.admin) url += "&admin=1";
+  return url;
 }
 
 /** "?k=..." to add to a link, or "" when there is no key. */
