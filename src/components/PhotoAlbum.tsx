@@ -412,7 +412,7 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
   }
 
   return (
-    <section className="mx-auto max-w-[82rem]" aria-label="Photo album">
+    <section className="mx-auto w-full max-w-[82rem]" aria-label="Photo album">
       {admin && <div className="mb-5 flex flex-wrap items-center justify-center gap-3 text-sm text-dusk-900">
         <button type="button" onClick={() => setEditing(!editing)} className="rounded-full bg-butter-200 px-4 py-2 font-semibold">
           {editing ? "Preview album" : "Edit album"}
@@ -437,7 +437,7 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
       {publishNotice && <p role="status" className="mb-4 text-center text-sm text-dusk-700">{publishNotice}</p>}
       {editing && <p className="mb-5 text-center text-sm text-dusk-700">Choose a layout and fill the pockets. Adding several photos fills empty pockets first, then creates more pages as needed.</p>}
       {!opened ? (
-        <div className="mx-auto max-w-lg [perspective:1200px]">
+        <div className="mx-auto w-full max-w-[min(36rem,56svh)] [perspective:1200px]">
           <motion.button
             type="button"
             aria-label="Open album"
@@ -450,7 +450,7 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
             className="album-cover relative flex aspect-[3/4] w-full origin-left cursor-pointer flex-col items-center justify-center gap-4 rounded-r-lg px-10 py-6 text-center text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-dusk-900 disabled:cursor-default sm:gap-6"
           >
             <span className="whitespace-pre-wrap wrap-anywhere font-serif text-2xl font-semibold uppercase leading-tight sm:text-3xl">{cover ? cover.title : "Us, Lately"}</span>
-            <span className="album-pocket relative block aspect-[4/5] w-full max-w-44 overflow-hidden bg-[#f1efe6]">
+            <span className="album-pocket relative block aspect-[4/5] w-[63%] max-w-72 overflow-hidden bg-[#f1efe6]">
               {cover?.photos[0] && (
                 // Local drafts use data URLs.
                 // eslint-disable-next-line @next/next/no-img-element
@@ -483,7 +483,7 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
             <p aria-live="polite" className="font-serif text-xl">{visiblePages.length > 1 ? `Pages ${first + 1}–${first + visiblePages.length}` : `Page ${first + 1}`} of {pages.length}</p>
             <button type="button" className="min-h-11 px-2 font-semibold disabled:opacity-40" disabled={busy || first + visiblePages.length >= pages.length} onClick={() => turn(1)}>Next →</button>
           </div>
-          <div className={`relative mx-auto rounded-sm border border-dusk-700 bg-dusk-500 p-2 shadow-xl [perspective:1600px] sm:p-3 ${isSpread ? "max-w-[82rem]" : "max-w-2xl"}`}>
+          <div className={`relative mx-auto w-full rounded-sm border border-dusk-700 bg-dusk-500 p-2 shadow-xl [perspective:1600px] sm:p-3 ${isSpread ? "max-w-[min(82rem,max(46rem,123svh))]" : "max-w-2xl"}`}>
             <div className={`relative grid [perspective:1600px] ${isSpread ? "grid-cols-2" : "grid-cols-1"}`}>
               {isSpread ? (
                 <>
