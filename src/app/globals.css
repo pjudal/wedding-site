@@ -222,10 +222,38 @@ body:has(dialog[open]) {
 }
 
 .album-cover {
-  border: 1px solid #252525;
+  border: 1px solid #385269;
   background:
-    linear-gradient(90deg, #111111 0%, #242424 5%, #080808 7%, transparent 10%),
-    repeating-linear-gradient(120deg, rgb(255 255 255 / 4%) 0 1px, transparent 1px 3px),
-    #151515;
-  box-shadow: inset -4px 0 7px rgb(0 0 0 / 35%), 6px 4px 0 #e4d8bb, 9px 7px 0 #202020, 12px 14px 20px rgb(29 43 57 / 28%);
+    linear-gradient(90deg, #30495e 0%, #58768d 5%, #324b61 7%, transparent 10%),
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 7%) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgb(16 35 52 / 12%) 0 1px, transparent 1px 3px),
+    #54738e;
+  box-shadow: inset -4px 0 7px rgb(29 43 57 / 25%), 6px 4px 0 #e4d8bb, 9px 7px 0 #354f67, 12px 14px 20px rgb(29 43 57 / 28%);
 }
+
+.album-ring {
+  height: 0.55rem;
+  border-radius: 999px;
+  border: 1px solid #82502f;
+  background: linear-gradient(#8a5132, #c38b58 22%, #fff0bf 40%, #d6a269 61%, #a16a41 83%, #684022);
+  box-shadow: 0 2px 3px rgb(68 39 21 / 38%);
+}
+
+.album-ribbon {
+  filter: drop-shadow(0 3px 2px rgb(29 43 57 / 24%));
+}
+
+.album-ribbon-tail {
+  position: absolute;
+  z-index: 25;
+  top: 53%;
+  width: clamp(1.8rem, 5vw, 3.5rem);
+  height: 0.75rem;
+  pointer-events: none;
+  background: linear-gradient(0deg, #c6aa77, #ffefca 55%, #d5ba8a);
+  clip-path: polygon(0 0, 100% 0, 89% 50%, 100% 100%, 0 100%);
+  filter: drop-shadow(0 2px 2px rgb(55 40 21 / 24%));
+}
+
+.album-ribbon-tail-left { left: -0.8rem; transform: scaleX(-1) rotate(-18deg); }
+.album-ribbon-tail-right { right: -0.8rem; transform: rotate(-18deg); }

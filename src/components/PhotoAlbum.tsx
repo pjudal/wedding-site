@@ -14,7 +14,7 @@ const layouts = {
 };
 
 type Layout = keyof typeof layouts;
-type Photo = { src: string; name: string };
+type Photo = { src: string; name: string; zoom?: number };
 type AlbumPage = { layout: Layout; photos: (Photo | null)[]; title?: string; caption?: string };
 
 const firstPages: AlbumPage[] = [{ layout: "cover", photos: [], title: "Before we say I do", caption: "PJ & Jedah" }, { layout: "pair", photos: [] }, { layout: "six", photos: [] }];
@@ -42,6 +42,7 @@ function isAlbum(value: unknown): value is AlbumPage[] {
     [page.title, page.caption].every((text) => text === undefined || typeof text === "string") &&
     page.photos.every((photo: Photo | null) => photo === null ||
       (photo && typeof photo.name === "string" && typeof photo.src === "string" &&
+        (photo.zoom === undefined || (Number.isFinite(photo.zoom) && photo.zoom >= 0.5 && photo.zoom <= 3)) &&
         /^data:image\/(jpeg|png|webp|gif|avif);base64,/i.test(photo.src))),
   );
 }
@@ -194,11 +195,17 @@ export function PhotoAlbum() {
               {cover?.photos[0] && (
                 // Local drafts use data URLs.
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={cover.photos[0].src} alt="" className="size-full object-contain p-1" />
+                <img src={cover.photos[0].src} alt="" style={{ scale: cover.photos[0].zoom ?? 1 }} className="size-full object-contain p-1" />
               )}
             </span>
             {cover?.caption && <span className="wrap-anywhere font-serif text-sm uppercase tracking-wider">{cover.caption}</span>}
             {firstInside < pages.length && <span className="text-sm font-semibold underline underline-offset-4">Open album →</span>}
+            <svg aria-hidden="true" viewBox="0 0 110 105" className="album-ribbon pointer-events-none absolute -right-4 top-[44%] w-20 sm:-right-8 sm:w-28">
+              <path d="M54 48C31 26 12 11 8 24 3 38 23 49 49 51 77 16 98 7 99 23c1 14-19 22-43 30" fill="none" stroke="#c6aa77" strokeWidth="11" />
+              <path d="M54 48C31 26 12 11 8 24 3 38 23 49 49 51 77 16 98 7 99 23c1 14-19 22-43 30" fill="none" stroke="#f7e8c5" strokeWidth="8" />
+              <path d="M51 51Q36 65 28 94l12-4 5 8q4-27 13-43 14 13 24 37l4-9 12 2Q83 63 60 49Z" fill="#f0dbaf" stroke="#c6aa77" />
+              <rect x="47" y="44" width="17" height="15" rx="5" fill="#fff0cc" stroke="#c6aa77" transform="rotate(14 55 51)" />
+            </svg>
           </motion.button>
           {editing && cover && (
             <label className="relative mx-auto mt-4 flex min-h-11 w-fit cursor-pointer items-center rounded-full bg-butter-200 px-4 text-sm font-semibold focus-within:outline-2">
@@ -223,7 +230,9 @@ export function PhotoAlbum() {
             <p aria-live="polite" className="font-serif text-xl">{visiblePages.length > 1 ? `Pages ${first + 1}–${first + visiblePages.length}` : `Page ${first + 1}`} of {pages.length}</p>
             <button type="button" className="min-h-11 px-2 font-semibold disabled:opacity-40" disabled={busy || first + visiblePages.length >= pages.length} onClick={() => turn(1)}>Next →</button>
           </div>
-          <div className={`mx-auto rounded-sm border border-neutral-800 bg-neutral-900 p-2 shadow-xl [perspective:1600px] sm:p-3 ${isSpread ? "max-w-4xl" : "max-w-lg"}`}>
+          <div className={`relative mx-auto rounded-sm border border-dusk-700 bg-dusk-500 p-2 shadow-xl [perspective:1600px] sm:p-3 ${isSpread ? "max-w-4xl" : "max-w-lg"}`}>
+            <span aria-hidden="true" className="album-ribbon-tail album-ribbon-tail-left" />
+            <span aria-hidden="true" className="album-ribbon-tail album-ribbon-tail-right" />
             <AnimatePresence mode="wait" custom={direction}>
               <motion.div
                 key={`${isSpread}-${first}`}
@@ -246,7 +255,7 @@ export function PhotoAlbum() {
                   return (
                     <div key={at} className={`album-paper relative flex aspect-[3/4] min-w-0 flex-col gap-2 overflow-hidden py-4 sm:py-6 ${leftSide ? "pl-4 pr-8 sm:pl-6 sm:pr-11" : "pl-8 pr-4 sm:pl-11 sm:pr-6"}`}>
                       <div aria-hidden="true" className={`pointer-events-none absolute inset-y-[8%] z-20 flex flex-col justify-between ${leftSide ? "right-0" : "left-0"}`}>
-                        {Array.from({ length: 6 }, (_, ring) => ring).map((ring) => <span key={ring} className="h-2 w-6 rounded-full bg-linear-to-b from-[#494c4b] via-[#fafbf9] to-[#767b7a] shadow-sm sm:w-8" />)}
+                        {Array.from({ length: 6 }, (_, ring) => ring).map((ring) => <span key={ring} className="album-ring w-6 sm:w-8" />)}
                       </div>
                       {paper.layout === "cover" && <p className="shrink-0 whitespace-pre-wrap break-words text-center font-serif text-lg font-semibold uppercase leading-tight text-[#58412e] sm:text-2xl">{paper.title}</p>}
                       <div className={`grid min-h-0 flex-1 gap-3 sm:gap-5 ${layout.grid}`}>
@@ -257,7 +266,7 @@ export function PhotoAlbum() {
                               {photo ? (
                                 // Local drafts contain browser data URLs, so no image optimizer is needed.
                                 // eslint-disable-next-line @next/next/no-img-element
-                                <img src={photo.src} alt={photo.name} className="absolute inset-0 size-full object-contain p-1 sm:p-2" />
+                                <img src={photo.src} alt={photo.name} style={{ scale: photo.zoom ?? 1 }} className="absolute inset-0 size-full object-contain p-1 sm:p-2" />
                               ) : editing && <span className="px-1 text-center text-xs font-semibold text-dusk-700 sm:text-sm">+ Add photo</span>}
                               {editing && <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" aria-label={`Choose photo for pocket ${slot + 1}`} disabled={busy} className="absolute inset-0 z-10 size-full cursor-pointer opacity-0" onChange={(event) => {
                                 void pickPhotos(at, Array.from(event.target.files ?? []), slot);
@@ -322,7 +331,7 @@ export function PhotoAlbum() {
       {editing && page.layout === "cover" && (
         <div className="mx-auto mt-4 grid max-w-lg gap-3 text-sm text-dusk-900 sm:grid-cols-2">
           <label className="grid gap-1">Cover title
-            <input maxLength={70} disabled={busy} value={page.title ?? ""} className="rounded-md border border-dusk-300 bg-white p-2" onChange={(event) => {
+            <textarea rows={2} maxLength={70} disabled={busy} value={page.title ?? ""} className="rounded-md border border-dusk-300 bg-white p-2" onChange={(event) => {
               const title = event.target.value;
               updatePage(index, (item) => ({ ...item, title }));
             }} />
@@ -334,6 +343,22 @@ export function PhotoAlbum() {
             }} />
           </label>
         </div>
+      )}
+      {editing && page.photos.slice(0, layouts[page.layout].pockets).some(Boolean) && (
+        <fieldset className="mx-auto mt-5 grid max-w-lg gap-3 text-sm text-dusk-900">
+          <legend className="mb-2 font-semibold">Photo framing · page {index + 1}</legend>
+          {page.photos.slice(0, layouts[page.layout].pockets).map((photo, slot) => photo && (
+            <label key={slot} className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
+              {page.layout === "cover" ? "Cover zoom" : `Pocket ${slot + 1} zoom`}
+              <input type="range" min={0.5} max={3} step={0.05} disabled={busy} value={photo.zoom ?? 1} className="min-w-0 accent-dusk-700" onChange={(event) => {
+                const zoom = Number(event.target.value);
+                updatePage(index, (item) => ({ ...item, photos: item.photos.map((entry, position) =>
+                  position === slot && entry ? { ...entry, zoom } : entry) }));
+              }} />
+              <span className="tabular-nums">{Math.round((photo.zoom ?? 1) * 100)}%</span>
+            </label>
+          ))}
+        </fieldset>
       )}
       {error && <p role="alert" className="mt-4 text-center text-sm text-red-800">{error}</p>}
     </section>
