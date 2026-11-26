@@ -177,12 +177,15 @@ async function postAlbum(action: "photo" | "publish", key: string, body: Blob | 
   }
 }
 
-export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
+export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; initialAlbum?: unknown }) {
   const admin = adminKey !== undefined;
-  const [published, setPublished] = useState<"loading" | "ready" | "missing" | "failed">("loading");
+  const [published, setPublished] = useState<"loading" | "ready" | "missing" | "failed">(
+    initialAlbum === null ? "missing" : isAlbum(initialAlbum) ? "ready" : "loading",
+  );
+  const [coverSettled, setCoverSettled] = useState(false);
   const uploadedPhotos = useRef(new Map<string, string>());
   const [publishNotice, setPublishNotice] = useState("");
-  const [pages, setPages] = useState(firstPages);
+  const [pages, setPages] = useState(() => isAlbum(initialAlbum) ? initialAlbum : firstPages);
   const [draftStatus, setDraftStatus] = useState<"loading" | "ready" | "unavailable">("loading");
   const [savedPages, setSavedPages] = useState(firstPages);
   const [saveFailed, setSaveFailed] = useState(false);
@@ -190,6 +193,7 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
 
   useEffect(() => {
     if (!admin) {
+      if (initialAlbum === null || isAlbum(initialAlbum)) return;
       const controller = new AbortController();
       void loadPublishedAlbum(controller.signal).then((album) => {
         if (!controller.signal.aborted) {
@@ -232,7 +236,7 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
       connection?.close();
       storage.current = null;
     };
-  }, [admin]);
+  }, [admin, initialAlbum]);
 
   useEffect(() => {
     if (!admin || draftStatus !== "ready" || pages === savedPages || !storage.current) return;
@@ -275,7 +279,7 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
 
   const preloadedPhotos = useRef(new Set<string>());
   useEffect(() => {
-    if (admin || published !== "ready" || !opened &&
+    if (admin || published !== "ready" || (!opened && cover?.photos[0] && !coverSettled) || !opened &&
       (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData) return;
     const count = isSpread ? 2 : 1;
     const nextPage = opened ? first + count : firstInside;
@@ -291,7 +295,7 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
         image.src = src;
       }
     }
-  }, [admin, published, opened, first, firstInside, isSpread, pages]);
+  }, [admin, published, opened, first, firstInside, isSpread, pages, cover, coverSettled]);
 
   function updatePage(at: number, update: (item: AlbumPage) => AlbumPage) {
     setPages((current) => current.map((item, offset) => offset === at ? update(item) : item));
@@ -524,7 +528,7 @@ export function PhotoAlbum({ adminKey }: { adminKey?: string }) {
               {cover?.photos[0] && (
                 // Local drafts use data URLs.
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={admin ? cover.photos[0].src : photoDisplayUrl(cover.photos[0], true)} fetchPriority="high" alt="" style={photoFraming(cover.photos[0])} className="size-full object-contain p-1" />
+                <img src={admin ? cover.photos[0].src : photoDisplayUrl(cover.photos[0], true)} fetchPriority="high" onLoad={() => setCoverSettled(true)} onError={() => setCoverSettled(true)} alt="" style={photoFraming(cover.photos[0])} className="size-full object-contain p-1" />
               )}
               <PocketCaption photo={cover?.photos[0]} />
             </span>
