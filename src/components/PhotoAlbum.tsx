@@ -553,13 +553,6 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
         </div>
       ) : (
         <>
-          <div className="mb-4 flex justify-center">
-            <button type="button" disabled={busy} className="min-h-11 text-sm font-semibold text-dusk-900 underline underline-offset-4" onClick={() => {
-              setIndex(0);
-              setOpened(false);
-            }}>Close album</button>
-          </div>
-          <p aria-live="polite" className="mb-4 text-center font-serif text-xl text-dusk-900">{visiblePages.length > 1 ? `Pages ${first + 1}–${first + visiblePages.length}` : `Page ${first + 1}`} of {pages.length}</p>
           <div className="mx-auto w-full lg:px-18">
             <div className={`relative mx-auto w-full ${isSpread ? "max-w-[min(82rem,max(46rem,123svh))]" : "max-w-2xl"}`}>
               <div className="relative w-full rounded-sm border border-dusk-700 bg-dusk-500 p-2 shadow-xl [perspective:1600px] sm:p-3">
@@ -604,6 +597,15 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
                   <AlbumArrow direction="next" disabled={busy || first + visiblePages.length >= pages.length} onClick={() => turn(1)} />
                 </div>
               </div>
+            </div>
+          </div>
+          <div className="mt-4 text-center">
+            <p aria-live="polite" className="text-center font-serif text-xl text-dusk-900">{visiblePages.length > 1 ? `Pages ${first + 1}–${first + visiblePages.length}` : `Page ${first + 1}`} of {pages.length}</p>
+            <div className="flex justify-center">
+              <button type="button" disabled={busy} className="min-h-11 text-sm font-semibold text-dusk-900 underline underline-offset-4" onClick={() => {
+                setIndex(0);
+                setOpened(false);
+              }}>Close album</button>
             </div>
           </div>
         </>
