@@ -9,7 +9,7 @@ function validManifest(pages: unknown): boolean {
   return Array.isArray(pages) && pages.length > 0 && pages.length <= 200 && pages.every((page) =>
     page && layouts.has(page.layout) && Array.isArray(page.photos) && page.photos.length <= 6 &&
     [page.title, page.caption].every((value) => value === undefined || typeof value === "string" && value.length <= 70) &&
-    page.photos.every((photo: { src: string; name: string; zoom?: number; x?: number; y?: number; caption?: string; showCaption?: boolean; captionSize?: number; captionBackground?: boolean } | null) =>
+    page.photos.every((photo: { src: string; name: string; zoom?: number; x?: number; y?: number; caption?: string; showCaption?: boolean; captionSize?: number; captionBackground?: boolean; captionColor?: string } | null) =>
       photo === null || (photo && typeof photo.src === "string" &&
       photo.src.startsWith("/api/album?photo=") && photoId.test(photo.src.slice("/api/album?photo=".length)) &&
       typeof photo.name === "string" && photo.name.length <= 255 &&
@@ -18,6 +18,7 @@ function validManifest(pages: unknown): boolean {
       (photo.showCaption === undefined || typeof photo.showCaption === "boolean") &&
       (photo.captionSize === undefined || Number.isInteger(photo.captionSize) && photo.captionSize >= 60 && photo.captionSize <= 160) &&
       (photo.captionBackground === undefined || typeof photo.captionBackground === "boolean") &&
+      (photo.captionColor === undefined || typeof photo.captionColor === "string" && /^#[0-9a-f]{6}$/i.test(photo.captionColor)) &&
       [photo.x, photo.y].every((offset) => offset === undefined || Number.isFinite(offset) && Math.abs(offset) <= 100))),
   );
 }
