@@ -2,7 +2,7 @@
 
 import localFont from "next/font/local";
 import { motion, useReducedMotion } from "motion/react";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { type PointerEvent, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 const layouts = {
   cover: { name: "Cover photo and text", pockets: 1, grid: "grid-cols-1 grid-rows-1" },
@@ -265,7 +265,8 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
   const [opening, setOpening] = useState(false);
   const [opened, setOpened] = useState(false);
   const [index, setIndex] = useState(0);
-  const [flip, setFlip] = useState<{ from: number; delta: number } | null>(null);
+  const [flip, setFlip] = useState<{ from: number; to: number; delta: number; angle: number; phase: "drag" | "finish" | "return" } | null>(null);
+  const pageDrag = useRef<{ pointer: number; x: number; y: number; width: number; delta?: number } | null>(null);
   const [editMode, setEditing] = useState(true);
   const editing = admin && editMode;
   const [error, setError] = useState("");
@@ -323,9 +324,52 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
 
   function turn(delta: number) {
     const next = first + delta * (isSpread ? 2 : 1);
-    if (busy || next < firstInside || next >= pages.length) return;
-    if (!reducedMotion) setFlip({ from: first, delta });
-    setIndex(next);
+    if (busy || pageDrag.current || next < firstInside || next >= pages.length) return;
+    if (reducedMotion) setIndex(next);
+    else setFlip({ from: first, to: next, delta, angle: -delta * (isSpread ? 180 : 92), phase: "finish" });
+  }
+
+  function startPageDrag(event: PointerEvent<HTMLDivElement>) {
+    if (editing || busy || pageDrag.current || !event.isPrimary || event.button !== 0) return;
+    const { left, width } = event.currentTarget.getBoundingClientRect();
+    pageDrag.current = {
+      pointer: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      width: isSpread ? width / 2 : width,
+      delta: isSpread ? (event.clientX < left + width / 2 ? -1 : 1) : undefined,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function dragPage(event: PointerEvent<HTMLDivElement>) {
+    const drag = pageDrag.current;
+    if (!drag || drag.pointer !== event.pointerId) return;
+    const distance = event.clientX - drag.x;
+    if (!flip && (Math.abs(distance) < 8 || Math.abs(event.clientY - drag.y) > Math.abs(distance))) return;
+    const delta = flip?.delta ?? drag.delta ?? (distance < 0 ? 1 : -1);
+    const to = first + delta * (isSpread ? 2 : 1);
+    if (to < firstInside || to >= pages.length || (!flip && distance * delta >= 0)) return;
+    const progress = Math.min(0.98, Math.max(0.0001, -distance * delta / drag.width));
+    if (!reducedMotion) {
+      const angle = Math.acos(1 - progress * (isSpread ? 2 : 1)) * 180 / Math.PI;
+      setFlip({ from: first, to, delta, angle: -delta * angle, phase: "drag" });
+    }
+  }
+
+  function endPageDrag(event: PointerEvent<HTMLDivElement>, cancelled = false) {
+    const drag = pageDrag.current;
+    if (!drag || drag.pointer !== event.pointerId) return;
+    pageDrag.current = null;
+    const distance = event.clientX - drag.x;
+    const delta = flip?.delta ?? drag.delta ?? (distance < 0 ? 1 : -1);
+    const complete = !cancelled && -distance * delta >= drag.width * 0.22 &&
+      Math.abs(distance) > Math.abs(event.clientY - drag.y);
+    if (flip?.phase === "drag") {
+      setFlip({ ...flip, angle: complete ? -delta * (isSpread ? 180 : 92) : 0, phase: complete ? "finish" : "return" });
+    } else if (complete) {
+      turn(delta);
+    }
   }
 
   async function pickPhotos(at: number, files: File[], slot?: number) {
@@ -556,13 +600,21 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
           <div className="mx-auto w-full lg:px-18">
             <div className={`relative mx-auto w-full ${isSpread ? "max-w-[min(82rem,max(46rem,123svh))]" : "max-w-2xl"}`}>
               <div className="relative w-full rounded-sm border border-dusk-700 bg-dusk-500 p-2 shadow-xl [perspective:1600px] sm:p-3">
-                <div className={`relative grid [perspective:1600px] ${isSpread ? "grid-cols-2" : "grid-cols-1"}`}>
+                <div
+                  className={`relative grid [perspective:1600px] ${isSpread ? "grid-cols-2" : "grid-cols-1"} ${editing ? "" : "touch-pan-y select-none cursor-grab active:cursor-grabbing"}`}
+                  onPointerDown={startPageDrag}
+                  onPointerMove={dragPage}
+                  onPointerUp={(event) => endPageDrag(event)}
+                  onPointerCancel={(event) => endPageDrag(event, true)}
+                  onLostPointerCapture={(event) => endPageDrag(event, true)}
+                  onDragStart={(event) => { if (!editing) event.preventDefault(); }}
+                >
                   {isSpread ? (
                     <>
-                      {renderPaper(flip?.delta === 1 ? flip.from : first, true)}
-                      {renderPaper(flip?.delta === -1 ? flip.from + 1 : first + 1, false)}
+                      {renderPaper(flip?.delta === 1 ? flip.from : (flip?.to ?? first), true)}
+                      {renderPaper(flip?.delta === -1 ? flip.from + 1 : (flip?.to ?? first) + 1, false)}
                     </>
-                  ) : renderPaper(first, false)}
+                  ) : renderPaper(flip?.to ?? first, false)}
                   <div aria-hidden="true" className={`album-binding ${isSpread ? "album-binding-center" : ""}`}>
                     {binderRings.map(([top, height]) => (
                       <svg key={top} viewBox={`0 ${top} 245 ${height}`} className="album-ring" style={{ top: `${(top + height / 2) / 13.5}%` }}>
@@ -573,17 +625,21 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
                   {flip && (
                     <motion.div
                       aria-hidden="true"
-                      className={`pointer-events-none absolute inset-y-0 z-20 [transform-style:preserve-3d] ${isSpread ? "w-1/2" : "w-full"} ${isSpread && flip.delta === 1 ? "right-0 origin-left" : isSpread ? "left-0 origin-right" : "left-0 origin-left"}`}
+                      className={`pointer-events-none absolute inset-y-0 z-20 [transform-style:preserve-3d] ${isSpread ? "w-1/2" : "w-full"} ${isSpread && flip.delta === 1 ? "right-0 origin-left" : isSpread ? "left-0 origin-right" : flip.delta === 1 ? "left-0 origin-left" : "left-0 origin-right"}`}
                       initial={{ rotateY: 0 }}
-                      animate={{ rotateY: -flip.delta * (isSpread ? 180 : 92) }}
-                      transition={{ duration: 0.64, ease: [0.4, 0, 0.2, 1] }}
-                      onAnimationComplete={() => setFlip(null)}
+                      animate={{ rotateY: flip.angle }}
+                      transition={{ duration: flip.phase === "drag" ? 0 : flip.phase === "return" ? 0.25 : 0.48, ease: [0.4, 0, 0.2, 1] }}
+                      onAnimationComplete={() => {
+                        if (flip.phase === "drag") return;
+                        if (flip.phase === "finish") setIndex(flip.to);
+                        setFlip(null);
+                      }}
                     >
                       <div className="absolute inset-0 [backface-visibility:hidden]">
                         {renderPaper(flip.from + (isSpread && flip.delta === 1 ? 1 : 0), isSpread && flip.delta === -1, false)}
                       </div>
                       {isSpread && <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)]">
-                        {renderPaper(first + (flip.delta === -1 ? 1 : 0), flip.delta === 1, false)}
+                        {renderPaper(flip.to + (flip.delta === -1 ? 1 : 0), flip.delta === 1, false)}
                       </div>}
                     </motion.div>
                   )}
