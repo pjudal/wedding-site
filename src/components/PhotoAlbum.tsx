@@ -158,7 +158,7 @@ async function albumJpeg(src: string): Promise<Blob> {
   ));
 }
 
-async function postAlbum(action: "photo" | "publish", key: string, body: Blob | string) {
+async function postAlbum(action: "photo" | "publish" | "draft-photo" | "draft-save", key: string, body: Blob | string) {
   for (let attempt = 0; ; attempt++) {
     let response: Response;
     try {
@@ -166,7 +166,7 @@ async function postAlbum(action: "photo" | "publish", key: string, body: Blob | 
         method: "POST",
         headers: {
           "x-album-admin": key,
-          "Content-Type": action === "photo" ? "image/jpeg" : "application/json",
+          "Content-Type": action.endsWith("photo") ? "image/jpeg" : "application/json",
         },
         body,
       });
@@ -188,6 +188,9 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
   );
   const [coverSettled, setCoverSettled] = useState(false);
   const uploadedPhotos = useRef(new Map<string, string>());
+  const draftPhotos = useRef(new Map<string, string>());
+  const [onlineKey, setOnlineKey] = useState("");
+  const [onlineRevision, setOnlineRevision] = useState<string | null | undefined>();
   const [publishNotice, setPublishNotice] = useState("");
   const [pages, setPages] = useState(() => isAlbum(initialAlbum) ? initialAlbum : firstPages);
   const [draftStatus, setDraftStatus] = useState<"loading" | "ready" | "unavailable">("loading");
@@ -419,13 +422,56 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
     }
   }
 
-  async function publishAlbum() {
-    if (adminKey === undefined || busy) return;
+  async function openOnlineDraft(useBrowserDraft = false) {
+    if (busy || !onlineKey) return;
+    setBusy(true);
+    setError("");
+    setPublishNotice("Opening online draft…");
+    const headers = { "x-album-admin": onlineKey };
+    try {
+      const response = await fetch("/api/album?draft", { headers, cache: "no-store" });
+      if (!response.ok) throw new Error(response.status === 403
+        ? "The online draft key is incorrect or hasn’t been set up."
+        : "Couldn’t open the online draft.");
+      const { pages: remote, revision } = await response.json();
+      if (useBrowserDraft && remote !== null) throw new Error("An online draft already exists. Open it to continue editing.");
+      const restored = remote === null ? (useBrowserDraft ? null : await loadPublishedAlbum()) : await Promise.all(
+        (remote as AlbumPage[]).map(async (item) => ({
+          ...item,
+          photos: await Promise.all(item.photos.map(async (photo) => {
+            if (!photo?.src.startsWith("draft:")) return photo;
+            const image = await fetch(`/api/album?draft=${encodeURIComponent(photo.src.slice(6))}`, { headers, cache: "no-store" });
+            if (!image.ok) throw new Error("Couldn’t load a photo from the online draft.");
+            const file = new File([await image.blob()], photo.name, { type: "image/jpeg" });
+            const { src } = await readPhoto(file);
+            draftPhotos.current.set(src, photo.src);
+            return { ...photo, src };
+          })),
+        })),
+      );
+      if (restored !== null && !isAlbum(restored)) throw new Error("The online draft could not be read.");
+      if (restored) {
+        setPages(restored);
+        setIndex(0);
+        setOpened(restored[0].layout !== "cover");
+      }
+      setOnlineRevision(revision);
+      setPublishNotice(remote ? "Online draft opened." : restored ? "Started from the published album. Save online to share your draft." : "No online draft yet. Save online to share this draft.");
+    } catch (err) {
+      setPublishNotice("");
+      setError(err instanceof Error ? err.message : "Couldn’t open the online draft.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function publishAlbum(online = false) {
+    if (adminKey === undefined || busy || (online && (!onlineKey || onlineRevision === undefined))) return;
     setBusy(true);
     setError("");
     setPublishNotice("");
     try {
-      const uploaded = uploadedPhotos.current;
+      const uploaded = online ? draftPhotos.current : uploadedPhotos.current;
       const manifest: AlbumPage[] = [];
       for (const item of pages) {
         const photos: AlbumPage["photos"] = [];
@@ -437,7 +483,7 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
           let src = uploaded.get(photo.src);
           if (!src) {
             setPublishNotice(`Uploading photos from page ${manifest.length + 1} of ${pages.length}…`);
-            const response = await postAlbum("photo", adminKey, await albumJpeg(photo.src));
+            const response = await postAlbum(online ? "draft-photo" : "photo", online ? onlineKey : adminKey, await albumJpeg(photo.src));
             const result = await response.json().catch(() => ({}));
             if (!response.ok || typeof result.src !== "string") {
               throw new Error(`Page ${manifest.length + 1}, pocket ${photos.length + 1}: ${result.error ?? "Photo upload failed."}`);
@@ -449,13 +495,21 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
         }
         manifest.push({ ...item, photos });
       }
-      setPublishNotice("Saving album layout…");
-      const result = await postAlbum("publish", adminKey, JSON.stringify(manifest));
+      setPublishNotice(online ? "Saving online draft…" : "Saving album layout…");
+      const result = online
+        ? await postAlbum("draft-save", onlineKey, JSON.stringify({ pages: manifest, revision: onlineRevision }))
+        : await postAlbum("publish", adminKey, JSON.stringify(manifest));
       if (!result.ok) {
         const failure = await result.json().catch(() => ({}));
         throw new Error(failure.error ?? "Couldn’t save the album layout.");
       }
-      setPublishNotice("Album published. Guests can now see it on any device.");
+      if (online) {
+        const { revision } = await result.json();
+        setOnlineRevision(revision);
+        setPublishNotice("Draft saved online. Open it on another device to continue editing.");
+      } else {
+        setPublishNotice("Album published. Guests can now see it on any device.");
+      }
     } catch (err) {
       setPublishNotice("");
       setError(err instanceof Error ? err.message : "Couldn’t publish. Your draft is still here.");
@@ -550,6 +604,20 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
             event.currentTarget.value = "";
           }} />
         </>}
+      </div>}
+      {editing && <div className="mb-4 flex flex-wrap items-end justify-center gap-3 text-sm text-dusk-900">
+        <label className="grid gap-1">
+          Online draft key
+          <input type="password" value={onlineKey} autoComplete="off" disabled={busy} className="rounded-md border border-dusk-300 bg-white px-3 py-2" onChange={(event) => {
+            setOnlineKey(event.target.value);
+            setOnlineRevision(undefined);
+          }} />
+        </label>
+        <button type="button" disabled={busy || !onlineKey} className="min-h-10 underline underline-offset-4 disabled:opacity-50" onClick={() => {
+          if (window.confirm("Open the online version in this browser? Use Save draft first if you want to keep a copy of your current edits.")) void openOnlineDraft();
+        }}>Open online draft</button>
+        <button type="button" disabled={busy || !onlineKey || onlineRevision !== undefined} className="min-h-10 underline underline-offset-4 disabled:opacity-50" onClick={() => void openOnlineDraft(true)}>Start with this browser’s draft</button>
+        <button type="button" disabled={busy || onlineRevision === undefined} className="min-h-10 rounded-full bg-butter-200 px-4 font-semibold disabled:opacity-50" onClick={() => void publishAlbum(true)}>Save online draft</button>
       </div>}
       {admin && <p role="status" className="mb-4 text-center text-sm text-dusk-700">
         {draftStatus === "unavailable" || saveFailed

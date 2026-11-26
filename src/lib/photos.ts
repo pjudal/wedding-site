@@ -1,7 +1,7 @@
 import "server-only";
 import { AwsClient } from "aws4fetch";
 import { createHash, randomBytes, timingSafeEqual } from "crypto";
-import { promises as fs } from "fs";
+import { promises as fs, readFileSync, renameSync, writeFileSync } from "fs";
 import path from "path";
 
 /*
@@ -327,4 +327,53 @@ export async function writeAlbumObject(key: string, body: ArrayBuffer, contentTy
     },
   });
   if (!response.ok) throw new Error(`Album storage write failed: HTTP ${response.status}`);
+}
+
+const draftFile = "draft.json";
+const draftTag = (body: Uint8Array) => `"${createHash("sha256").update(body).digest("hex")}"`;
+
+export function isAlbumDraftKey(value: string | null) {
+  const key = process.env.ALBUM_DRAFT_KEY;
+  return !!key && value !== null && same(value, key);
+}
+
+export async function readOnlineAlbumDraft() {
+  const object = await readAlbumObject(draftFile);
+  if (!object) return { revision: null, pages: null };
+  const bytes = new Uint8Array(await object.arrayBuffer());
+  return { revision: object.headers.get("etag") ?? draftTag(bytes), pages: JSON.parse(new TextDecoder().decode(bytes)) };
+}
+
+export async function saveOnlineAlbumDraft(body: ArrayBuffer, revision: string | null) {
+  const bytes = new Uint8Array(body);
+  if (backend() === "local") {
+    const directory = path.join(LOCAL_DIR, "album");
+    await fs.mkdir(directory, { recursive: true });
+    const file = path.join(directory, draftFile);
+    let current = null;
+    try {
+      current = draftTag(readFileSync(file));
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    }
+    if (current !== revision) return null;
+    const temporary = path.join(directory, randomBytes(16).toString("hex"));
+    writeFileSync(temporary, bytes);
+    renameSync(temporary, file);
+    return draftTag(bytes);
+  }
+  const response = await r2().fetch(objectUrl(`album/${draftFile}`), {
+    method: "PUT",
+    body,
+    headers: {
+      ...(revision === null ? { "If-None-Match": "*" } : { "If-Match": revision }),
+      "Content-Type": "application/json",
+      "Content-Length": String(body.byteLength),
+      "X-Amz-Content-Sha256": createHash("sha256").update(bytes).digest("hex"),
+    },
+  });
+  if (response.status === 412 || response.status === 409) return null;
+  const tag = response.headers.get("etag");
+  if (!response.ok || !tag) throw new Error("Online draft storage write failed");
+  return tag;
 }
