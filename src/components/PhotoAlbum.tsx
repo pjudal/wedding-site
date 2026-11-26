@@ -606,7 +606,6 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
                   onPointerMove={dragPage}
                   onPointerUp={(event) => endPageDrag(event)}
                   onPointerCancel={(event) => endPageDrag(event, true)}
-                  onLostPointerCapture={(event) => endPageDrag(event, true)}
                   onDragStart={(event) => { if (!editing) event.preventDefault(); }}
                 >
                   {isSpread ? (
