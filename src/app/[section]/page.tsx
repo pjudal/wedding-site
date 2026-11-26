@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { readAlbumObject } from "@/lib/photos";
 import { notFound, redirect } from "next/navigation";
@@ -9,6 +10,7 @@ import { Travel } from "@/components/Travel";
 import { firsts, weddingPages } from "@/content";
 
 async function PublishedPhotoAlbum() {
+  await connection();
   let album: unknown;
   try {
     const saved = await readAlbumObject("published.json");
