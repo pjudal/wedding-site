@@ -15,9 +15,9 @@ const layouts = {
 };
 
 type Layout = keyof typeof layouts;
-type Photo = { src: string; name: string; zoom?: number; x?: number; y?: number; caption?: string; showCaption?: boolean; captionSize?: number };
+type Photo = { src: string; name: string; zoom?: number; x?: number; y?: number; caption?: string; showCaption?: boolean; captionSize?: number; captionBackground?: boolean };
 
-const pocketHandwriting = localFont({ src: "../assets/internet-friends.ttf", preload: false, display: "swap", variable: "--font-pocket-handwriting" });
+const pocketHandwriting = localFont({ src: "../assets/baby-doll.ttf", preload: false, display: "swap", variable: "--font-pocket-handwriting" });
 type AlbumPage = { layout: Layout; photos: (Photo | null)[]; title?: string; caption?: string };
 
 const firstPages: AlbumPage[] = [{ layout: "cover", photos: [], title: "Before we say I do", caption: "PJ & Jedah" }, { layout: "pair", photos: [] }, { layout: "six", photos: [] }];
@@ -52,6 +52,7 @@ function isAlbum(value: unknown): value is AlbumPage[] {
         (photo.caption === undefined || typeof photo.caption === "string" && photo.caption.length <= 80) &&
         (photo.showCaption === undefined || typeof photo.showCaption === "boolean") &&
         (photo.captionSize === undefined || Number.isInteger(photo.captionSize) && photo.captionSize >= 60 && photo.captionSize <= 160) &&
+        (photo.captionBackground === undefined || typeof photo.captionBackground === "boolean") &&
         [photo.x, photo.y].every((offset) => offset === undefined || (Number.isFinite(offset) && Math.abs(offset) <= 100)) &&
         (/^data:image\/(jpeg|png|webp|gif|avif);base64,/i.test(photo.src) || /^\/api\/album\?photo=[a-f0-9-]{36}\.jpg$/.test(photo.src)))),
   );
@@ -83,7 +84,7 @@ function PocketCaption({ photo }: { photo?: Photo | null }) {
   if (!photo?.showCaption || !photo.caption?.trim()) return null;
   const scale = (photo.captionSize ?? 100) / 100;
   return (
-    <span style={{ fontSize: `clamp(${0.875 * scale}rem, ${3 * scale}vw, ${1.125 * scale}rem)` }} className="pointer-events-none absolute inset-x-2 bottom-2 z-10 mx-auto w-fit max-w-[calc(100%-1rem)] whitespace-pre-wrap rounded-sm bg-cream/95 px-1.5 py-0.5 text-center leading-tight wrap-anywhere text-dusk-950 shadow-sm [font-family:var(--font-pocket-handwriting),cursive]">
+    <span style={{ fontSize: `clamp(${0.875 * scale}rem, ${3 * scale}vw, ${1.125 * scale}rem)` }} className={`pointer-events-none absolute inset-x-2 bottom-2 z-10 mx-auto w-fit max-w-[calc(100%-1rem)] whitespace-pre-wrap rounded-sm px-1.5 py-0.5 text-center leading-tight wrap-anywhere [font-family:var(--font-pocket-handwriting),cursive] ${photo.captionBackground === false ? "text-white [text-shadow:0_1px_3px_#000,0_0_5px_#000]" : "bg-cream/95 text-dusk-950 shadow-sm"}`}>
       {photo.caption}
     </span>
   );
@@ -346,6 +347,7 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
             caption: photos[slot]?.caption,
             showCaption: photos[slot]?.showCaption,
             captionSize: photos[slot]?.captionSize,
+            captionBackground: photos[slot]?.captionBackground,
           };
         } else {
           for (let pocket = 0; pocket < layouts[item.layout].pockets && selected.length; pocket++) {
@@ -697,6 +699,14 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
                     position === slot && entry ? { ...entry, captionSize } : entry) }));
                 }} />
                 <span className="text-right tabular-nums">{photo.captionSize ?? 100}%</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={photo.captionBackground !== false} disabled={busy} className="accent-dusk-700" onChange={(event) => {
+                  const captionBackground = event.target.checked;
+                  updatePage(index, (item) => ({ ...item, photos: item.photos.map((entry, position) =>
+                    position === slot && entry ? { ...entry, captionBackground } : entry) }));
+                }} />
+                Show text background
               </label>
               </>}
             </fieldset>
