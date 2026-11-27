@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { rsvpMessageLabel, site } from "@/content";
+import { site } from "@/content";
 import { cleanAnswers, isDisplayField, questionPages, type Answers, type Question } from "@/lib/rsvp-questions";
 import { RsvpQuestionField } from "./RsvpQuestionField";
 import { RsvpEnvelope } from "./RsvpEnvelope";
@@ -143,18 +143,13 @@ export function Rsvp() {
   }
 
   const anyoneComing = party.some((m) => m.attending === "yes");
-  const attendingGuests = party.filter((guest) => guest.attending === "yes");
+  const customPages = questionPages(customQuestions, answers);
+  const hasDecline = party.some((guest) => guest.attending === "no");
   const questions = [
     ...party.map((guest) => ({ kind: "attendance" as const, guest })),
-    ...(party.some((guest) => guest.attending === "no") ? [{ kind: "decline" as const }] : []),
-    ...attendingGuests.flatMap((guest) => [
-      { kind: "stay" as const, guest },
-      { kind: "dietary" as const, guest },
-    ]),
-    ...(anyoneComing ? [
-      ...questionPages(customQuestions, answers).map((fields) => ({ kind: "custom" as const, fields })),
-      { kind: "message" as const },
-    ] : []),
+    ...(hasDecline ? [{ kind: "decline" as const }] : []),
+    ...(anyoneComing ? customPages.map((fields) => ({ kind: "custom" as const, fields })) : []),
+    ...(anyoneComing && !hasDecline && !customPages.length ? [{ kind: "submit" as const }] : []),
   ];
   const question = questions[questionIndex];
   const lastQuestion = questionIndex === questions.length - 1;
@@ -220,7 +215,7 @@ export function Rsvp() {
             ) : step === "form" && question ? (
               <motion.form key="form" {...fade} onSubmit={(event) => {
                 event.preventDefault();
-                if (question.kind === "attendance" || question.kind === "stay" || busy) return;
+                if (question.kind === "attendance" || busy) return;
                 if (question.kind === "custom" && question.fields.some((field) => field.required &&
                   !answers[field.id]?.some((value) => value.trim()))) {
                   setError("Please answer this question to continue.");
@@ -265,40 +260,6 @@ export function Rsvp() {
                   </div>
                 )}
 
-                {question.kind === "stay" && (
-                  <>
-                    <h2 ref={questionHeading} tabIndex={-1} className="font-serif text-3xl">
-                      Will {question.guest.name} stay the night before?
-                    </h2>
-                    <p className="text-sm text-dusk-700">
-                      {site.nightBeforeLabel} · {site.nightBeforePrice} · Confirm by {site.nightBeforeDeadlineLabel}
-                    </p>
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      {([["yes", "Yes, I’ll stay"], ["no", "No, thank you"]] as const).map(([value, label]) => (
-                        <button key={value} type="button" aria-pressed={question.guest.nightBefore === value}
-                          className="rounded-2xl bg-dusk-50 px-4 py-3 text-sm font-semibold text-dusk-950 ring-1 ring-dusk-200 hover:bg-butter-100 aria-pressed:bg-butter-200"
-                          onClick={() => {
-                            update(question.guest.id, { nightBefore: value });
-                            nextQuestion();
-                          }}>
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-
-                {question.kind === "dietary" && (
-                  <>
-                    <h2 ref={questionHeading} tabIndex={-1} className="font-serif text-3xl">
-                      <label htmlFor="rsvp-dietary">Any allergies or dietary needs for {question.guest.name}?</label>
-                    </h2>
-                    <input id="rsvp-dietary" className={inputCls} value={question.guest.dietary} maxLength={500}
-                      onChange={(event) => update(question.guest.id, { dietary: event.target.value })}
-                      placeholder="Optional, e.g. no shellfish or vegetarian" />
-                  </>
-                )}
-
                 {question.kind === "custom" && question.fields.map((field, index) => (
                   <div className="space-y-2" key={field.id}>
                     <h2 ref={index === 0 ? questionHeading : undefined} tabIndex={index === 0 ? -1 : undefined} className="font-serif text-2xl">
@@ -310,15 +271,8 @@ export function Rsvp() {
                   </div>
                 ))}
 
-                {question.kind === "message" && (
-                  <>
-                    <h2 ref={questionHeading} tabIndex={-1} className="font-serif text-3xl">
-                      <label htmlFor="rsvp-message">{rsvpMessageLabel}</label>
-                    </h2>
-                    <textarea id="rsvp-message" rows={3} maxLength={500} className={inputCls} value={message}
-                      onChange={(event) => setMessage(event.target.value)}
-                      placeholder="Optional. Hashtag ideas, song requests, or well wishes" />
-                  </>
+                {question.kind === "submit" && (
+                  <h2 ref={questionHeading} tabIndex={-1} className="font-serif text-3xl">Ready to send your RSVP?</h2>
                 )}
 
                 {error && <p role="alert" className="text-sm font-medium text-red-700">{error}</p>}
@@ -333,7 +287,7 @@ export function Rsvp() {
                   }} className="min-h-11 text-sm font-semibold text-dusk-700 hover:text-dusk-900">
                     {questionIndex === 0 ? "Not you? Search again" : "Back"}
                   </button>
-                  {question.kind !== "attendance" && question.kind !== "stay" && (
+                  {question.kind !== "attendance" && (
                     <button type="submit" disabled={busy}
                       className="rounded-2xl bg-dusk-700 px-6 py-3 font-semibold text-cream hover:bg-dusk-900 disabled:opacity-50">
                       {busy ? "Sending…" : lastQuestion ? (returning ? "Update RSVP" : "Send RSVP") : "Continue"}

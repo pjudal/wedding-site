@@ -66,7 +66,7 @@ export function RsvpQuestionEditor() {
 
   return <section className="space-y-5">
     <h1 className="font-serif text-4xl">RSVP questions</h1>
-    <p className="text-dusk-700">Group questions, instructions, images, and QR codes into pages that appear once per invitation when someone accepts. The standard attendance, overnight stay, and dietary questions come first.</p>
+    <p className="text-dusk-700">Group questions, instructions, images, and QR codes into pages that appear once per invitation when someone accepts. Guests answer the built-in attendance question first. Add any follow-up questions here.</p>
     {loaded && <fieldset disabled={busy} className="space-y-5">
       <button type="button" className="text-sm font-semibold underline" onClick={() => {
         setPreview(!preview);
