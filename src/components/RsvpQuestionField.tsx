@@ -1,3 +1,4 @@
+import { QrCode } from "./QrCode";
 import type { Question } from "@/lib/rsvp-questions";
 
 export function RsvpQuestionField({ question, value, onChange }: {
@@ -6,6 +7,17 @@ export function RsvpQuestionField({ question, value, onChange }: {
   onChange: (value: string[]) => void;
 }) {
   const input = "w-full rounded-xl border border-dusk-200 bg-white px-4 py-3";
+  if (question.type === "instructions") {
+    return <p className="whitespace-pre-wrap break-words text-dusk-700">{question.content}</p>;
+  }
+  if (question.type === "image") {
+    if (!question.content?.startsWith("https://")) return null;
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={question.content} alt={question.label} referrerPolicy="no-referrer" className="max-h-64 max-w-full rounded-xl object-contain" />;
+  }
+  if (question.type === "QR code") {
+    return <QrCode value={question.content ?? ""} className="size-44 bg-white p-4" />;
+  }
   if (question.type === "paragraph") {
     return <textarea className={input} aria-label={question.label} required={question.required}
       maxLength={500} rows={3} value={value[0] ?? ""} onChange={(event) => onChange([event.target.value])} />;

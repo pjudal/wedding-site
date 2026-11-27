@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { rsvpMessageLabel, site } from "@/content";
-import { cleanAnswers, visibleQuestions, type Answers, type Question } from "@/lib/rsvp-questions";
+import { cleanAnswers, isDisplayField, questionPages, type Answers, type Question } from "@/lib/rsvp-questions";
 import { RsvpQuestionField } from "./RsvpQuestionField";
 import { RsvpEnvelope } from "./RsvpEnvelope";
 
@@ -152,7 +152,7 @@ export function Rsvp() {
       { kind: "dietary" as const, guest },
     ]),
     ...(anyoneComing ? [
-      ...visibleQuestions(customQuestions, answers).map((field) => ({ kind: "custom" as const, field })),
+      ...questionPages(customQuestions, answers).map((fields) => ({ kind: "custom" as const, fields })),
       { kind: "message" as const },
     ] : []),
   ];
@@ -221,8 +221,8 @@ export function Rsvp() {
               <motion.form key="form" {...fade} onSubmit={(event) => {
                 event.preventDefault();
                 if (question.kind === "attendance" || question.kind === "stay" || busy) return;
-                if (question.kind === "custom" && question.field.required &&
-                  !answers[question.field.id]?.some((value) => value.trim())) {
+                if (question.kind === "custom" && question.fields.some((field) => field.required &&
+                  !answers[field.id]?.some((value) => value.trim()))) {
                   setError("Please answer this question to continue.");
                   return;
                 }
@@ -299,16 +299,16 @@ export function Rsvp() {
                   </>
                 )}
 
-                {question.kind === "custom" && (
-                  <>
-                    <h2 ref={questionHeading} tabIndex={-1} className="font-serif text-3xl">
-                      {question.field.label}
-                      {!question.field.required && <span className="ml-2 font-sans text-sm text-dusk-600">(optional)</span>}
+                {question.kind === "custom" && question.fields.map((field, index) => (
+                  <div className="space-y-2" key={field.id}>
+                    <h2 ref={index === 0 ? questionHeading : undefined} tabIndex={index === 0 ? -1 : undefined} className="font-serif text-2xl">
+                      {field.label}
+                      {!field.required && !isDisplayField(field.type) && <span className="ml-2 font-sans text-sm text-dusk-600">(optional)</span>}
                     </h2>
-                    <RsvpQuestionField key={question.field.id} question={question.field} value={answers[question.field.id] ?? []}
-                      onChange={(value) => setAnswers((current) => ({ ...current, [question.field.id]: value }))} />
-                  </>
-                )}
+                    <RsvpQuestionField question={field} value={answers[field.id] ?? []}
+                      onChange={(value) => setAnswers((current) => ({ ...current, [field.id]: value }))} />
+                  </div>
+                ))}
 
                 {question.kind === "message" && (
                   <>

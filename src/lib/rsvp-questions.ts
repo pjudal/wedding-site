@@ -1,10 +1,12 @@
-export const questionTypes = ["short text", "paragraph", "single choice", "checkboxes", "dropdown"] as const;
+export const questionTypes = ["short text", "paragraph", "single choice", "checkboxes", "dropdown", "instructions", "image", "QR code"] as const;
 
 export type Question = {
   id: string;
   label: string;
   type: typeof questionTypes[number];
   required: boolean;
+  startsPage?: boolean;
+  content?: string;
   options: string[];
   condition?: { questionId: string; option: string };
 };
@@ -20,6 +22,24 @@ export function visibleQuestions(questions: Question[], answers: Answers) {
   });
 }
 
+export function isDisplayField(type: Question["type"]) {
+  return type === "instructions" || type === "image" || type === "QR code";
+}
+
+export function isChoiceField(type: Question["type"]) {
+  return type === "single choice" || type === "checkboxes" || type === "dropdown";
+}
+
+export function questionPages(questions: Question[], answers: Answers) {
+  const visible = new Set(visibleQuestions(questions, answers).map((question) => question.id));
+  const pages: Question[][] = [];
+  for (const question of questions) {
+    if (!pages.length || question.startsPage !== false) pages.push([]);
+    if (visible.has(question.id)) pages[pages.length - 1].push(question);
+  }
+  return pages.filter((page) => page.length > 0);
+}
+
 export function validateQuestions(value: unknown): value is Question[] {
   if (!Array.isArray(value) || value.length > 20) return false;
   const seen = new Map<string, Question>();
@@ -30,7 +50,18 @@ export function validateQuestions(value: unknown): value is Question[] {
       !Array.isArray(question.options) || question.options.length > 15 ||
       !question.options.every((option) => typeof option === "string" && !!option.trim() && option.length <= 80) ||
       new Set(question.options).size !== question.options.length) return false;
-    const isChoice = question.type !== "short text" && question.type !== "paragraph";
+    if (question.startsPage !== undefined && typeof question.startsPage !== "boolean") return false;
+    if (isDisplayField(question.type)) {
+      if (question.required || typeof question.content !== "string" || !question.content.trim() || question.content.length > 2000) return false;
+      if (question.type === "image") {
+        try {
+          if (new URL(question.content).protocol !== "https:") return false;
+        } catch {
+          return false;
+        }
+      }
+    }
+    const isChoice = isChoiceField(question.type);
     if (isChoice ? question.options.length < 2 : question.options.length > 0) return false;
     if (question.condition !== undefined && (!question.condition ||
       !seen.get(question.condition.questionId)?.options.includes(question.condition.option))) return false;
@@ -47,6 +78,7 @@ export function cleanAnswers(questions: Question[], raw: unknown, enforceRequire
     if (question.condition && !(shown.has(question.condition.questionId) &&
       result[question.condition.questionId]?.includes(question.condition.option))) continue;
     shown.add(question.id);
+    if (isDisplayField(question.type)) continue;
     const value = input[question.id] ?? [];
     if (!Array.isArray(value) || value.length > (question.type === "checkboxes" ? question.options.length : 1) ||
       value.some((item) => typeof item !== "string" || item.length > 500)) return null;
