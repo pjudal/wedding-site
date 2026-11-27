@@ -344,7 +344,9 @@ export async function readOnlineAlbumDraft() {
   const object = await readAlbumObject(draftFile);
   if (!object) return { revision: null, pages: null };
   const bytes = new Uint8Array(await object.arrayBuffer());
-  return { revision: object.headers.get("etag") ?? draftTag(bytes), pages: JSON.parse(new TextDecoder().decode(bytes)) };
+  // R2 sends a weak ETag (W/"...") when the response gets compressed. The value inside is the same one If-Match compares.
+  const revision = (object.headers.get("etag") ?? draftTag(bytes)).replace(/^W\//, "");
+  return { revision, pages: JSON.parse(new TextDecoder().decode(bytes)) };
 }
 
 export async function saveOnlineAlbumDraft(body: ArrayBuffer, revision: string | null) {
