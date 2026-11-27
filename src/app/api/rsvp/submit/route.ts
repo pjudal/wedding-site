@@ -1,3 +1,5 @@
+import { readQuestions } from "@/lib/rsvp-question-store";
+import { cleanAnswers } from "@/lib/rsvp-questions";
 import { site } from "@/content";
 import { listGuests, saveResponses, type ResponseUpdate } from "@/lib/store";
 
@@ -33,6 +35,15 @@ export async function POST(request: Request) {
     // Every id must exist and belong to the same party.
     if (found.some((g) => !g) || new Set(found.map((g) => g!.party)).size !== 1) {
       return Response.json({ error: "invalid" }, { status: 400 });
+    }
+    const questions = await readQuestions();
+    if (questions.length && updates.some((update) => update.attending === "yes")) {
+      const answers = cleanAnswers(questions, body?.answers);
+      if (!answers) return Response.json({ error: "questions" }, { status: 400 });
+      const saved = JSON.stringify(questions.filter((question) => answers[question.id]?.length)
+        .map((question) => ({ id: question.id, question: question.label, answers: answers[question.id] })));
+      if (saved.length > 48_000) return Response.json({ error: "questions" }, { status: 400 });
+      for (const update of updates) update.extraAnswers = saved;
     }
     await saveResponses(updates);
     return Response.json({ ok: true });

@@ -19,6 +19,7 @@ const FIELD_TO_HEADER = {
   dietary: 'Dietary',
   message: 'Message',
   updatedAt: 'Updated At',
+  extraAnswers: 'Additional RSVP Answers',
 };
 
 function doPost(e) {
@@ -37,6 +38,14 @@ function doPost(e) {
     const sheet = SpreadsheetApp.getActive().getSheetByName('Guests');
     if (!sheet) return json_({ error: 'no Guests tab' });
     if (body.action === 'list') return json_({ guests: readGuests_(sheet) });
+    if (body.action === 'saveWithQuestions') {
+      if (columns_(sheet).extraAnswers === undefined) {
+        const last = sheet.getLastColumn();
+        if (last === sheet.getMaxColumns()) sheet.insertColumnAfter(last);
+        sheet.getRange(1, last + 1).setValue(FIELD_TO_HEADER.extraAnswers);
+      }
+      return json_(save_(sheet, body.updates || []));
+    }
     if (body.action === 'save') return json_(save_(sheet, body.updates || []));
     return json_({ error: 'unknown action' });
   } finally {
@@ -51,7 +60,7 @@ function columns_(sheet) {
     const i = field === 'nickname'
       ? headers.findIndex((header) => header.trim().toLowerCase() === 'nickname')
       : headers.indexOf(FIELD_TO_HEADER[field]);
-    if (i === -1 && field === 'nickname') return;
+    if (i === -1 && (field === 'nickname' || field === 'extraAnswers')) return;
     if (i === -1) throw new Error('Missing column: ' + FIELD_TO_HEADER[field]);
     cols[field] = i;
   });
@@ -108,6 +117,9 @@ function save_(sheet, updates) {
       sheet.getRange(rowNum, cols.dietary + 1).setValue(safe_(u.dietary));
       sheet.getRange(rowNum, cols.message + 1).setValue(safe_(u.message));
       sheet.getRange(rowNum, cols.updatedAt + 1).setValue(now);
+      if (cols.extraAnswers !== undefined && typeof u.extraAnswers === 'string') {
+        sheet.getRange(rowNum, cols.extraAnswers + 1).setValue(u.extraAnswers);
+      }
       logSheet.appendRow([now, safe_(u.id), safe_(values[r][cols.name]), safe_(u.attending),
         safe_(u.nightBefore), safe_(u.dietary), safe_(u.message)]);
       break;

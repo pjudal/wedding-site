@@ -1,3 +1,4 @@
+import { readQuestions } from "@/lib/rsvp-question-store";
 import { findGuest } from "@/lib/match";
 import { listGuests } from "@/lib/store";
 
@@ -17,7 +18,12 @@ export async function POST(request: Request) {
       .map(({ id, name, attending, nightBefore, dietary, message }) => ({
         id, name, attending, nightBefore, dietary, message,
       }));
-    return Response.json({ status: "found", party });
+    const questions = await readQuestions();
+    let savedAnswers: unknown = [];
+    try {
+      savedAnswers = JSON.parse(result.guest.extraAnswers || "[]");
+    } catch {}
+    return Response.json({ status: "found", party, questions, savedAnswers });
   } catch (err) {
     console.error(err);
     return Response.json({ status: "error" }, { status: 500 });

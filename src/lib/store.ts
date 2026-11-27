@@ -14,9 +14,10 @@ export type Guest = {
   dietary: string;
   message: string;
   updatedAt: string;
+  extraAnswers?: string;
 };
 
-export type ResponseUpdate = Pick<Guest, "id" | "attending" | "nightBefore" | "dietary" | "message">;
+export type ResponseUpdate = Pick<Guest, "id" | "attending" | "nightBefore" | "dietary" | "message" | "extraAnswers">;
 
 /*
  * Two backends:
@@ -44,6 +45,7 @@ function clean(raw: Partial<Guest>): Guest {
     dietary: String(raw.dietary ?? ""),
     message: String(raw.message ?? ""),
     updatedAt: String(raw.updatedAt ?? ""),
+    extraAnswers: String(raw.extraAnswers ?? ""),
   };
 }
 
@@ -76,7 +78,7 @@ export async function listGuests(): Promise<Guest[]> {
 
 export async function saveResponses(updates: ResponseUpdate[]): Promise<void> {
   if (backend() === "google") {
-    await callScript("save", { updates });
+    await callScript(updates.some((update) => update.extraAnswers !== undefined) ? "saveWithQuestions" : "save", { updates });
     return;
   }
   const guests = await listGuests();
