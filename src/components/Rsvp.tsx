@@ -123,7 +123,7 @@ export function Rsvp() {
           </p>
         </header>
 
-        <div className="rounded-[2rem] bg-white p-5 shadow-[0_20px_60px_-30px_rgba(38,56,74,0.45)] ring-1 ring-butter-200 sm:p-7">
+        <div className="relative rounded-[2rem] bg-white p-5 shadow-[0_20px_60px_-30px_rgba(38,56,74,0.45)] ring-1 ring-butter-200 sm:p-7">
           <AnimatePresence mode="wait">
             {closed ? (
               <motion.div key="closed" {...fade} className="text-center">
@@ -236,6 +236,13 @@ export function Rsvp() {
                         </motion.div>
                       )}
                     </AnimatePresence>
+          {!closed && step === "search" && busy && (
+            <div className="mt-3 flex justify-center lg:pointer-events-none lg:absolute lg:top-1/2 lg:left-full lg:mt-0 lg:ml-5 lg:-translate-y-1/2 xl:ml-12">
+              {/* Serve the small GIF directly to preserve its animation. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/images/rsvp-on-my-way.gif" alt="" width={120} height={120} className="rounded-xl shadow-sm motion-reduce:hidden lg:w-32 xl:w-48" />
+            </div>
+          )}
                   </fieldset>
                 ))}
 
