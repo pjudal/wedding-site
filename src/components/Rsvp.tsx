@@ -3,7 +3,7 @@
 import { useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { rsvpMessageLabel, site } from "@/content";
-import { SectionHeading } from "./SectionHeading";
+import { RsvpEnvelope } from "./RsvpEnvelope";
 
 type YesNo = "" | "yes" | "no";
 type Member = { id: string; name: string; attending: YesNo; nightBefore: YesNo; dietary: string; message: string };
@@ -111,7 +111,17 @@ export function Rsvp() {
     <section id="rsvp" className="min-h-[75svh] bg-butter-50 bg-cover bg-center px-4 py-20 md:py-28"
       style={{ backgroundImage: "linear-gradient(rgba(250, 246, 226, 0.84), rgba(250, 246, 226, 0.3)), url(/images/rsvp-background.webp)" }}>
       <div className="mx-auto max-w-2xl">
-        <SectionHeading eyebrow={`Kindly reply by ${site.rsvpDeadlineLabel}`} title="RSVP" />
+        <header className="mb-10 text-center md:mb-14">
+          <div className="illustrated-link mx-auto mb-2 w-24 text-dusk-950 sm:w-28">
+            <RsvpEnvelope />
+          </div>
+          <h1 className="font-serif text-7xl font-medium leading-none text-dusk-950 [text-shadow:0_0_12px_#fde68a,0_0_28px_#facc15] sm:text-8xl md:text-9xl">
+            RSVP
+          </h1>
+          <p className="mt-4 inline-block rounded-lg bg-butter-200 px-4 py-1.5 text-base font-semibold text-dusk-950 sm:text-lg">
+            Kindly reply by {site.rsvpDeadlineLabel}
+          </p>
+        </header>
 
         <div className="rounded-[2rem] bg-white p-6 shadow-[0_20px_60px_-30px_rgba(38,56,74,0.45)] ring-1 ring-butter-200 md:p-10">
           <AnimatePresence mode="wait">
