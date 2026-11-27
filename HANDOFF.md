@@ -272,6 +272,11 @@ No key to type and no "save online" button.
   doing the merge wins. Then it **pushes**. The server refuses a push that isn't based on the latest version (409), and the
   device just pulls, merges and tries again.
 - New photos are uploaded as soon as they're added and the draft points at the uploaded copy, so other devices see them.
+- **Leaving the page** (switching apps, locking the phone, closing the tab) sends the latest edits straight away in a
+  `keepalive` request, so work typed a second before leaving still reaches the other devices. (Not when new photos are
+  still uploading or there's no signal: then they sync the next time that device opens the editor.)
+- **Publish syncs first:** it pulls, merges and pushes, then publishes the merged album. If it can't reach the online draft
+  it publishes nothing and says so, so a device can't publish a version missing work from the other devices.
 - The status line under the buttons says "All changes saved and synced", "Saving and syncing…" or "Can't reach the online
   draft" (offline: edits stay on the device and sync later).
 - The first time a device syncs, if it had its own older draft that differs from the online one, the online one wins and the

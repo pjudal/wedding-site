@@ -238,9 +238,11 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
   const base = useRef<SyncBase | null>(null);
   const hadLocalDraft = useRef(false);
   const syncKey = useRef("");
-  const syncing = useRef(false);
+  const running = useRef<Promise<boolean> | null>(null);
   const syncAgain = useRef(false);
-  const syncNow = useRef<() => Promise<void>>(async () => {});
+  // Resolves true once this device and the online draft match (everything pulled, merged and pushed).
+  const syncNow = useRef<() => Promise<boolean>>(async () => false);
+  const pushOnLeave = useRef<() => void>(() => {});
   useLayoutEffect(() => { pagesRef.current = pages; }, [pages]);
 
   function setBase(next: SyncBase) {
@@ -293,13 +295,13 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
     return { pages: swap(list), swap };
   }
 
-  async function syncStep() {
+  async function syncStep(): Promise<"synced" | "locked" | "again"> {
     const headers = { "x-album-admin": syncKey.current };
     // Pull.
     const response = await fetch("/api/album?draft", { headers, cache: "no-store" });
     if (response.status === 403) {
       setSyncStatus("locked");
-      return;
+      return "locked";
     }
     if (!response.ok) throw new Error("Online draft unavailable");
     const remote: { revision: string | null; pages: unknown } = await response.json();
@@ -325,14 +327,13 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
         }
       }
       setBase({ revision: remote.revision, pages: theirs });
-      syncAgain.current = true;
-      return;
+      return "again";
     }
     // Online copy is what this device last saw. Push if there's anything new here.
     const snapshot = pagesRef.current;
     if (known && known.revision === remote.revision && same(snapshot, known.pages)) {
       setSyncStatus("synced");
-      return;
+      return "synced";
     }
     setSyncStatus("syncing");
     const { pages: ready, swap } = await withUploadedPhotos(snapshot);
@@ -343,37 +344,69 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
     const saved = await postAlbum("draft-save", syncKey.current, JSON.stringify({ pages: ready, revision: remote.revision }));
     if (saved.status === 409) {
       // Another device saved in between: pull and merge again.
-      syncAgain.current = true;
-      return;
+      return "again";
     }
     if (saved.status === 403) {
       setSyncStatus("locked");
-      return;
+      return "locked";
     }
     if (!saved.ok) throw new Error("Online draft save failed");
     const { revision } = await saved.json();
     setBase({ revision, pages: ready });
-    syncAgain.current = true;
+    return "again";
   }
 
   useEffect(() => {
-    syncNow.current = async () => {
-      if (syncing.current) {
+    syncNow.current = () => {
+      if (running.current) {
+        // Already syncing: ask it to go round once more so it also picks up whatever just changed.
         syncAgain.current = true;
+        return running.current;
+      }
+      const run = (async () => {
+        try {
+          let rounds = 0;
+          let result: Awaited<ReturnType<typeof syncStep>>;
+          do {
+            syncAgain.current = false;
+            result = await syncStep();
+          } while (result !== "locked" && (result === "again" || syncAgain.current) && ++rounds < 8);
+          return result === "synced";
+        } catch {
+          setSyncStatus("offline");
+          return false;
+        } finally {
+          running.current = null;
+        }
+      })();
+      running.current = run;
+      return run;
+    };
+
+    // Leaving the page (switching apps, locking the phone, closing the tab): send the latest edits straight away in one
+    // request the browser finishes even if the page is frozen or closed. If another device saved in the meantime the
+    // server refuses it (409) and nothing is lost: the edits stay on this device and merge the next time it opens.
+    pushOnLeave.current = () => {
+      const known = base.current;
+      const snapshot = pagesRef.current;
+      if (!known || same(snapshot, known.pages)) return;
+      const pendingPhotos = snapshot.some((item) => item.photos.some((photo) => photo && !photo.src.startsWith("/api/album?photo=")));
+      const body = JSON.stringify({ pages: snapshot, revision: known.revision });
+      // Browsers cap these requests at 64 KB, and new photos have to upload first: fall back to a normal sync.
+      if (pendingPhotos || body.length > 60_000) {
+        void syncNow.current();
         return;
       }
-      syncing.current = true;
-      try {
-        let rounds = 0;
-        do {
-          syncAgain.current = false;
-          await syncStep();
-        } while (syncAgain.current && ++rounds < 6);
-      } catch {
-        setSyncStatus("offline");
-      } finally {
-        syncing.current = false;
-      }
+      fetch("/api/album?action=draft-save", {
+        method: "POST",
+        keepalive: true,
+        headers: { "x-album-admin": syncKey.current, "Content-Type": "application/json" },
+        body,
+      }).then(async (response) => {
+        if (!response.ok) return;
+        const { revision } = await response.json();
+        if (base.current === known) setBase({ revision, pages: snapshot });
+      }).catch(() => {});
     };
   });
 
@@ -466,15 +499,21 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
 
   useEffect(() => {
     if (!admin || draftStatus === "loading") return;
-    const sync = () => { if (document.visibilityState === "visible") void syncNow.current(); };
+    const sync = () => {
+      if (document.visibilityState === "visible") void syncNow.current();
+      else pushOnLeave.current();
+    };
+    const leave = () => pushOnLeave.current();
     const timer = window.setInterval(sync, 20_000);
     window.addEventListener("focus", sync);
     window.addEventListener("online", sync);
+    window.addEventListener("pagehide", leave);
     document.addEventListener("visibilitychange", sync);
     return () => {
       window.clearInterval(timer);
       window.removeEventListener("focus", sync);
       window.removeEventListener("online", sync);
+      window.removeEventListener("pagehide", leave);
       document.removeEventListener("visibilitychange", sync);
     };
   }, [admin, draftStatus]);
@@ -648,6 +687,11 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
     setError("");
     setPublishNotice("");
     try {
+      // Pull, merge and push first, so the album includes work saved from her other devices.
+      setPublishNotice("Bringing in changes from your other devices…");
+      if (!await syncNow.current()) {
+        throw new Error("Couldn’t sync with your other devices, so nothing was published (guests still see the last version). Check your connection and try again.");
+      }
       const snapshot = pagesRef.current;
       const { pages: manifest, swap } = await withUploadedPhotos(snapshot, (page) => {
         setPublishNotice(`Uploading photos from page ${page} of ${snapshot.length}…`);
