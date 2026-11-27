@@ -31,19 +31,23 @@ export type MatchResult =
 
 /**
  * Finds exactly one guest for a typed name, or nothing.
- * Order: exact full name, then first + last (all typed words appear in the name),
- * then a small typo allowance. A single word only matches a single-word name,
- * so typing just a surname never reveals anyone.
+ * Order: exact full name, exact sheet nickname, then first + last,
+ * then a small typo allowance for names.
  */
 export function findGuest(guests: Guest[], query: string): MatchResult {
   const q = normalize(query);
-  if (q.length < 2) return { status: "none" };
+  if (!q) return { status: "none" };
 
   const pick = (list: Guest[]): MatchResult | null =>
     list.length === 1 ? { status: "found", guest: list[0] } : list.length > 1 ? { status: "ambiguous" } : null;
 
   const exact = pick(guests.filter((g) => normalize(g.name) === q));
   if (exact) return exact;
+
+  const nickname = pick(guests.filter((g) => normalize(g.nickname ?? "") === q));
+  if (nickname) return nickname;
+
+  if (q.length < 2) return { status: "none" };
 
   const qt = q.split(" ");
   const byWords = pick(

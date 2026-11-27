@@ -54,7 +54,7 @@ export function Rsvp() {
       } else if (data.status === "ambiguous") {
         setError("We found more than one guest with that name. Please type your full name as it appears on your invitation.");
       } else if (data.status === "none") {
-        setError("We couldn't find that name. Try your full name as it appears on your invitation, or message us directly.");
+        setError("We couldn’t find that name. Try your full name or the nickname we know you by, or message us directly.");
       } else {
         setError("Something went wrong on our side. Please try again in a moment.");
       }
@@ -108,7 +108,8 @@ export function Rsvp() {
   const anyoneComing = party.some((m) => m.attending === "yes");
 
   return (
-    <section id="rsvp" className="bg-butter-50 px-4 py-20 md:py-28">
+    <section id="rsvp" className="min-h-[75svh] bg-butter-50 bg-cover bg-center px-4 py-20 md:py-28"
+      style={{ backgroundImage: "linear-gradient(rgba(250, 246, 226, 0.84), rgba(250, 246, 226, 0.3)), url(/images/rsvp-background.webp)" }}>
       <div className="mx-auto max-w-2xl">
         <SectionHeading eyebrow={`Kindly reply by ${site.rsvpDeadlineLabel}`} title="RSVP" />
 
@@ -124,14 +125,14 @@ export function Rsvp() {
                 <label htmlFor="rsvp-name" className="block font-serif text-2xl md:text-3xl">
                   Find your invitation
                 </label>
-                <p className="mt-2 text-sm text-dusk-700">Type your full name as it appears on your invitation.</p>
+                <p className="mt-2 text-sm text-dusk-700">Enter your full name or nickname to find your invitation.</p>
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                   <input
                     id="rsvp-name"
                     className={inputCls}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Juan Dela Cruz"
+                    placeholder="Full name or nickname"
                     autoComplete="name"
                     required
                   />

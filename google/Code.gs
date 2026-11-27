@@ -3,7 +3,7 @@
  * Extensions > Apps Script. Setup steps are in README.md ("Connect the Google Sheet").
  *
  * Sheet tab "Guests", row 1 headers (any order, extra columns are fine):
- *   ID | Name | Party | Side | Role | Relationship | Attending | Night Before | Dietary | Message | Updated At
+ *   ID | Name | Nickname (optional) | Party | Side | Role | Relationship | Attending | Night Before | Dietary | Message | Updated At
  * A "Log" tab is created automatically and gets one row per submission (full history).
  *
  * Script property SECRET must match GOOGLE_SCRIPT_SECRET on Vercel.
@@ -12,6 +12,7 @@
 const FIELD_TO_HEADER = {
   id: 'ID',
   name: 'Name',
+  nickname: 'Nickname',
   party: 'Party',
   attending: 'Attending',
   nightBefore: 'Night Before',
@@ -47,7 +48,10 @@ function columns_(sheet) {
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(String);
   const cols = {};
   Object.keys(FIELD_TO_HEADER).forEach(function (field) {
-    const i = headers.indexOf(FIELD_TO_HEADER[field]);
+    const i = field === 'nickname'
+      ? headers.findIndex((header) => header.trim().toLowerCase() === 'nickname')
+      : headers.indexOf(FIELD_TO_HEADER[field]);
+    if (i === -1 && field === 'nickname') return;
     if (i === -1) throw new Error('Missing column: ' + FIELD_TO_HEADER[field]);
     cols[field] = i;
   });

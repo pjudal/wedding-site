@@ -7,6 +7,7 @@ export type YesNo = "" | "yes" | "no";
 export type Guest = {
   id: string;
   name: string;
+  nickname?: string;
   party: string; // guests sharing a party RSVP together; blank in the sheet = their own party
   attending: YesNo;
   nightBefore: YesNo;
@@ -36,6 +37,7 @@ function clean(raw: Partial<Guest>): Guest {
   return {
     id,
     name: String(raw.name ?? "").trim(),
+    nickname: String(raw.nickname ?? "").trim(),
     party: String(raw.party ?? "").trim() || id,
     attending: yn(raw.attending),
     nightBefore: yn(raw.nightBefore),
