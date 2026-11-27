@@ -8,6 +8,7 @@ const layouts = new Set(["cover", "horizontal", "single", "pair", "trio", "four"
 function validManifest(pages: unknown, draft = false): boolean {
   return Array.isArray(pages) && pages.length > 0 && pages.length <= 200 && pages.every((page) =>
     page && layouts.has(page.layout) && Array.isArray(page.photos) && page.photos.length <= 6 &&
+    (page.id === undefined || typeof page.id === "string" && /^[A-Za-z0-9_-]{1,40}$/.test(page.id)) &&
     [page.title, page.caption].every((value) => value === undefined || typeof value === "string" && value.length <= 70) &&
     page.photos.every((photo: { src: string; name: string; zoom?: number; x?: number; y?: number; caption?: string; showCaption?: boolean; captionSize?: number; captionBackground?: boolean; captionColor?: string } | null) =>
       photo === null || (photo && typeof photo.src === "string" &&

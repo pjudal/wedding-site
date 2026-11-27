@@ -2,7 +2,8 @@
 
 import localFont from "next/font/local";
 import { motion, useReducedMotion } from "motion/react";
-import { type PointerEvent, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { type PointerEvent, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { ensureIds, mergeAlbum, newPageId, same } from "@/lib/albumSync";
 
 const layouts = {
   cover: { name: "Cover photo and text", pockets: 1, grid: "grid-cols-1 grid-rows-1" },
@@ -20,9 +21,9 @@ type Photo = { src: string; name: string; zoom?: number; x?: number; y?: number;
 const defaultCaptionColor = "#1d2b39";
 
 const pocketHandwriting = localFont({ src: "../assets/baby-doll.ttf", preload: false, display: "swap", variable: "--font-pocket-handwriting" });
-type AlbumPage = { layout: Layout; photos: (Photo | null)[]; title?: string; caption?: string };
+type AlbumPage = { id?: string; layout: Layout; photos: (Photo | null)[]; title?: string; caption?: string };
 
-const firstPages: AlbumPage[] = [{ layout: "cover", photos: [], title: "Before we say I do", caption: "PJ & Jedah" }, { layout: "pair", photos: [] }, { layout: "six", photos: [] }];
+const firstPages: AlbumPage[] = [{ id: "start-cover", layout: "cover", photos: [], title: "Before we say I do", caption: "PJ & Jedah" }, { id: "start-pair", layout: "pair", photos: [] }, { id: "start-six", layout: "six", photos: [] }];
 
 // Vertical bounds of the six rings in the supplied 245 × 1350 artwork.
 const binderRings = [[3, 63], [201, 60], [396, 59], [899, 64], [1088, 64], [1273, 66]] as const;
@@ -57,7 +58,8 @@ function isAlbum(value: unknown): value is AlbumPage[] {
         (photo.captionBackground === undefined || typeof photo.captionBackground === "boolean") &&
         (photo.captionColor === undefined || typeof photo.captionColor === "string" && /^#[0-9a-f]{6}$/i.test(photo.captionColor)) &&
         [photo.x, photo.y].every((offset) => offset === undefined || (Number.isFinite(offset) && Math.abs(offset) <= 100)) &&
-        (/^data:image\/(jpeg|png|webp|gif|avif);base64,/i.test(photo.src) || /^\/api\/album\?photo=[a-f0-9-]{36}\.jpg$/.test(photo.src)))),
+        (/^data:image\/(jpeg|png|webp|gif|avif);base64,/i.test(photo.src) || /^\/api\/album\?photo=[a-f0-9-]{36}\.jpg$/.test(photo.src) ||
+          /^draft:[a-f0-9-]{36}\.jpg$/.test(photo.src)))),
   );
 }
 
@@ -112,6 +114,13 @@ const framingControls = [
 // Keep these identifiers stable across deployments so visual updates can reopen drafts.
 const draftStore = "drafts";
 const draftKey = "us-lately";
+// The last online version this device synced with (its git "base"), and a copy of this device's own draft kept
+// the first time it syncs, in case the online copy replaced edits that had never been shared.
+const baseKey = "us-lately-base";
+const backupKey = "us-lately-backup";
+const draftKeyStorage = "album-draft-key";
+type SyncBase = { revision: string | null; pages: AlbumPage[] };
+type SyncStatus = "starting" | "synced" | "syncing" | "offline" | "locked";
 
 function openAlbumStorage(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -122,12 +131,33 @@ function openAlbumStorage(): Promise<IDBDatabase> {
   });
 }
 
-function readAlbumDraft(db: IDBDatabase): Promise<unknown> {
+function readAlbumDraft(db: IDBDatabase, key = draftKey): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    const request = db.transaction(draftStore).objectStore(draftStore).get(draftKey);
+    const request = db.transaction(draftStore).objectStore(draftStore).get(key);
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
+}
+
+function writeAlbumStorage(db: IDBDatabase | null, key: string, value: unknown) {
+  try {
+    db?.transaction(draftStore, "readwrite").objectStore(draftStore).put(value, key);
+  } catch {
+    // The online draft still has everything; this only speeds up the next visit.
+  }
+}
+
+function isSyncBase(value: unknown): value is SyncBase {
+  const base = value as SyncBase | undefined;
+  return !!base && (base.revision === null || typeof base.revision === "string") && isAlbum(base.pages);
+}
+
+function readSavedDraftKey() {
+  try {
+    return localStorage.getItem(draftKeyStorage) ?? "";
+  } catch {
+    return "";
+  }
 }
 
 async function loadPublishedAlbum(signal?: AbortSignal): Promise<AlbumPage[] | null> {
@@ -187,16 +217,166 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
     initialAlbum === null ? "missing" : isAlbum(initialAlbum) ? "ready" : "loading",
   );
   const [coverSettled, setCoverSettled] = useState(false);
-  const uploadedPhotos = useRef(new Map<string, string>());
-  const draftPhotos = useRef(new Map<string, string>());
-  const [onlineKey, setOnlineKey] = useState("");
-  const [onlineRevision, setOnlineRevision] = useState<string | null | undefined>();
+  const uploads = useRef(new Map<string, Promise<string>>());
   const [publishNotice, setPublishNotice] = useState("");
   const [pages, setPages] = useState(() => isAlbum(initialAlbum) ? initialAlbum : firstPages);
   const [draftStatus, setDraftStatus] = useState<"loading" | "ready" | "unavailable">("loading");
   const [savedPages, setSavedPages] = useState(firstPages);
   const [saveFailed, setSaveFailed] = useState(false);
   const storage = useRef<IDBDatabase | null>(null);
+
+  // ---- syncing between devices (git style: pull, merge, push) ----
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>("starting");
+  const [syncNote, setSyncNote] = useState("");
+  const [hasBackup, setHasBackup] = useState(false);
+  const [keyInput, setKeyInput] = useState("");
+  const [keyTried, setKeyTried] = useState(false);
+  const [syncedPages, setSyncedPages] = useState<AlbumPage[] | null>(null);
+  const pagesRef = useRef(pages);
+  const indexRef = useRef(0);
+  const realignTo = useRef<string | null>(null);
+  const base = useRef<SyncBase | null>(null);
+  const hadLocalDraft = useRef(false);
+  const syncKey = useRef("");
+  const syncing = useRef(false);
+  const syncAgain = useRef(false);
+  const syncNow = useRef<() => Promise<void>>(async () => {});
+  useLayoutEffect(() => { pagesRef.current = pages; }, [pages]);
+
+  function setBase(next: SyncBase) {
+    base.current = next;
+    setSyncedPages(next.pages);
+    writeAlbumStorage(storage.current, baseKey, next);
+  }
+
+  // Replace pages that came from the other devices, keeping the page that's open in view.
+  function takePages(next: AlbumPage[]) {
+    realignTo.current = pagesRef.current[indexRef.current]?.id ?? null;
+    pagesRef.current = next;
+    setPages(next);
+  }
+
+  function uploadPhoto(src: string) {
+    let pending = uploads.current.get(src);
+    if (!pending) {
+      pending = (async () => {
+        const blob = src.startsWith("draft:")
+          // Photos saved by the first version of online drafts: move them to the shared photo store.
+          ? await fetch(`/api/album?draft=${encodeURIComponent(src.slice(6))}`, { headers: { "x-album-admin": syncKey.current }, cache: "no-store" })
+            .then((response) => { if (!response.ok) throw new Error("Couldn’t load a photo from the online draft."); return response.blob(); })
+          : await albumJpeg(src);
+        const response = await postAlbum("photo", syncKey.current, blob);
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || typeof result.src !== "string") throw new Error(result.error ?? "Photo upload failed.");
+        return result.src as string;
+      })();
+      uploads.current.set(src, pending);
+      pending.catch(() => uploads.current.delete(src));
+    }
+    return pending;
+  }
+
+  // Upload any photo that only exists on this device, and return the pages pointing at the uploaded copies.
+  async function withUploadedPhotos(list: AlbumPage[], progress?: (page: number) => void) {
+    const swaps = new Map<string, string>();
+    for (const [position, item] of list.entries()) {
+      for (const photo of item.photos) {
+        if (!photo || photo.src.startsWith("/api/album?photo=") || swaps.has(photo.src)) continue;
+        progress?.(position + 1);
+        swaps.set(photo.src, await uploadPhoto(photo.src));
+      }
+    }
+    const swap = (items: AlbumPage[]) => swaps.size ? items.map((item) => ({
+      ...item,
+      photos: item.photos.map((photo) => photo && swaps.has(photo.src) ? { ...photo, src: swaps.get(photo.src)! } : photo),
+    })) : items;
+    return { pages: swap(list), swap };
+  }
+
+  async function syncStep() {
+    const headers = { "x-album-admin": syncKey.current };
+    // Pull.
+    const response = await fetch("/api/album?draft", { headers, cache: "no-store" });
+    if (response.status === 403) {
+      setSyncStatus("locked");
+      return;
+    }
+    if (!response.ok) throw new Error("Online draft unavailable");
+    const remote: { revision: string | null; pages: unknown } = await response.json();
+    const known = base.current;
+    if (remote.revision !== null && remote.revision !== known?.revision) {
+      if (!isAlbum(remote.pages)) throw new Error("Unreadable online draft");
+      const theirs = ensureIds(remote.pages);
+      const { pages: ready } = await withUploadedPhotos(theirs);
+      if (!known) {
+        // First sync on this device: the online copy wins, and this device's own copy is kept as a backup.
+        const mine = pagesRef.current;
+        if (hadLocalDraft.current && !same(mine, ready)) {
+          writeAlbumStorage(storage.current, backupKey, mine);
+          setHasBackup(true);
+          setSyncNote("Opened the latest version from your other devices. This device had its own older copy, so it was kept as a backup below.");
+        }
+        takePages(ready);
+      } else {
+        const merged = mergeAlbum(known.pages, pagesRef.current, ready);
+        if (!same(merged, pagesRef.current)) {
+          takePages(merged);
+          setSyncNote("Brought in changes made on another device.");
+        }
+      }
+      setBase({ revision: remote.revision, pages: theirs });
+      syncAgain.current = true;
+      return;
+    }
+    // Online copy is what this device last saw. Push if there's anything new here.
+    const snapshot = pagesRef.current;
+    if (known && known.revision === remote.revision && same(snapshot, known.pages)) {
+      setSyncStatus("synced");
+      return;
+    }
+    setSyncStatus("syncing");
+    const { pages: ready, swap } = await withUploadedPhotos(snapshot);
+    if (ready !== snapshot) {
+      pagesRef.current = swap(pagesRef.current);
+      setPages(swap);
+    }
+    const saved = await postAlbum("draft-save", syncKey.current, JSON.stringify({ pages: ready, revision: remote.revision }));
+    if (saved.status === 409) {
+      // Another device saved in between: pull and merge again.
+      syncAgain.current = true;
+      return;
+    }
+    if (saved.status === 403) {
+      setSyncStatus("locked");
+      return;
+    }
+    if (!saved.ok) throw new Error("Online draft save failed");
+    const { revision } = await saved.json();
+    setBase({ revision, pages: ready });
+    syncAgain.current = true;
+  }
+
+  useEffect(() => {
+    syncNow.current = async () => {
+      if (syncing.current) {
+        syncAgain.current = true;
+        return;
+      }
+      syncing.current = true;
+      try {
+        let rounds = 0;
+        do {
+          syncAgain.current = false;
+          await syncStep();
+        } while (syncAgain.current && ++rounds < 6);
+      } catch {
+        setSyncStatus("offline");
+      } finally {
+        syncing.current = false;
+      }
+    };
+  });
+
 
   useEffect(() => {
     if (!admin) {
@@ -222,13 +402,23 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
           return;
         }
         const draft = await readAlbumDraft(connection);
+        const savedBase = await readAlbumDraft(connection, baseKey).catch(() => undefined);
+        const backup = await readAlbumDraft(connection, backupKey).catch(() => undefined);
         if (!active) return;
         if (draft !== undefined && !isAlbum(draft)) throw new Error("Unreadable album draft");
+        hadLocalDraft.current = isAlbum(draft);
+        if (isSyncBase(savedBase)) {
+          base.current = { ...savedBase, pages: ensureIds(savedBase.pages) };
+          setSyncedPages(base.current.pages);
+        }
+        setHasBackup(isAlbum(backup));
         const restored = isAlbum(draft) ? draft : await loadPublishedAlbum().catch(() => null);
         if (!active) return;
         if (restored) {
-          setPages(restored);
-          setSavedPages(restored);
+          const withIds = ensureIds(restored);
+          pagesRef.current = withIds;
+          setPages(withIds);
+          setSavedPages(withIds);
         }
         storage.current = connection;
         setDraftStatus("ready");
@@ -237,6 +427,7 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
         if (active) setDraftStatus("unavailable");
       }
     }
+    syncKey.current = readSavedDraftKey();
     void restoreDraft();
     return () => {
       active = false;
@@ -265,9 +456,38 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
     }
     return () => { active = false; };
   }, [admin, draftStatus, pages, savedPages]);
+
+  // Sync a moment after each edit stops, every 20 seconds, and whenever this tab comes back into focus or online.
+  useEffect(() => {
+    if (!admin || draftStatus === "loading") return;
+    const timer = window.setTimeout(() => void syncNow.current(), 1500);
+    return () => window.clearTimeout(timer);
+  }, [admin, draftStatus, pages]);
+
+  useEffect(() => {
+    if (!admin || draftStatus === "loading") return;
+    const sync = () => { if (document.visibilityState === "visible") void syncNow.current(); };
+    const timer = window.setInterval(sync, 20_000);
+    window.addEventListener("focus", sync);
+    window.addEventListener("online", sync);
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", sync);
+      window.removeEventListener("online", sync);
+      document.removeEventListener("visibilitychange", sync);
+    };
+  }, [admin, draftStatus]);
   const [opening, setOpening] = useState(false);
   const [opened, setOpened] = useState(false);
   const [index, setIndex] = useState(0);
+  useLayoutEffect(() => { indexRef.current = index; }, [index]);
+  useLayoutEffect(() => {
+    if (realignTo.current === null) return;
+    const at = pages.findIndex((item) => item.id === realignTo.current);
+    realignTo.current = null;
+    setIndex((current) => at >= 0 ? at : Math.min(current, pages.length - 1));
+  }, [pages]);
   const [flip, setFlip] = useState<{ from: number; to: number; delta: number; angle: number; phase: "drag" | "finish" | "return" } | null>(null);
   const pageDrag = useRef<{ pointer: number; x: number; y: number; width: number; delta?: number } | null>(null);
   const [editMode, setEditing] = useState(true);
@@ -278,7 +498,7 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
   const reducedMotion = useReducedMotion();
   const importInput = useRef<HTMLInputElement>(null);
   const isSpread = useSyncExternalStore(subscribeToSpread, () => window.matchMedia(spreadQuery).matches, () => false);
-  const page = pages[index];
+  const page = pages[Math.min(index, pages.length - 1)];
   const cover = pages[0].layout === "cover" ? pages[0] : undefined;
   const firstInside = cover ? 1 : 0;
   const activeIndex = Math.max(firstInside, index);
@@ -408,7 +628,7 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
           const capacity = layouts[overflowLayout].pockets;
           const extraPages: AlbumPage[] = [];
           while (selected.length) {
-            extraPages.push({ layout: overflowLayout, photos: selected.splice(0, capacity) });
+            extraPages.push({ id: newPageId(), layout: overflowLayout, photos: selected.splice(0, capacity) });
           }
           next.splice(at + 1, 0, ...extraPages);
         }
@@ -422,94 +642,27 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
     }
   }
 
-  async function openOnlineDraft(useBrowserDraft = false) {
-    if (busy || !onlineKey) return;
-    setBusy(true);
-    setError("");
-    setPublishNotice("Opening online draft…");
-    const headers = { "x-album-admin": onlineKey };
-    try {
-      const response = await fetch("/api/album?draft", { headers, cache: "no-store" });
-      if (!response.ok) throw new Error(response.status === 403
-        ? "The online draft key is incorrect or hasn’t been set up."
-        : "Couldn’t open the online draft.");
-      const { pages: remote, revision } = await response.json();
-      if (useBrowserDraft && remote !== null) throw new Error("An online draft already exists. Open it to continue editing.");
-      const restored = remote === null ? (useBrowserDraft ? null : await loadPublishedAlbum()) : await Promise.all(
-        (remote as AlbumPage[]).map(async (item) => ({
-          ...item,
-          photos: await Promise.all(item.photos.map(async (photo) => {
-            if (!photo?.src.startsWith("draft:")) return photo;
-            const image = await fetch(`/api/album?draft=${encodeURIComponent(photo.src.slice(6))}`, { headers, cache: "no-store" });
-            if (!image.ok) throw new Error("Couldn’t load a photo from the online draft.");
-            const file = new File([await image.blob()], photo.name, { type: "image/jpeg" });
-            const { src } = await readPhoto(file);
-            draftPhotos.current.set(src, photo.src);
-            return { ...photo, src };
-          })),
-        })),
-      );
-      if (restored !== null && !isAlbum(restored)) throw new Error("The online draft could not be read.");
-      if (restored) {
-        setPages(restored);
-        setIndex(0);
-        setOpened(restored[0].layout !== "cover");
-      }
-      setOnlineRevision(revision);
-      setPublishNotice(remote ? "Online draft opened." : restored ? "Started from the published album. Save online to share your draft." : "No online draft yet. Save online to share this draft.");
-    } catch (err) {
-      setPublishNotice("");
-      setError(err instanceof Error ? err.message : "Couldn’t open the online draft.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function publishAlbum(online = false) {
-    if (adminKey === undefined || busy || (online && (!onlineKey || onlineRevision === undefined))) return;
+  async function publishAlbum() {
+    if (adminKey === undefined || busy) return;
     setBusy(true);
     setError("");
     setPublishNotice("");
     try {
-      const uploaded = online ? draftPhotos.current : uploadedPhotos.current;
-      const manifest: AlbumPage[] = [];
-      for (const item of pages) {
-        const photos: AlbumPage["photos"] = [];
-        for (const photo of item.photos) {
-          if (!photo || photo.src.startsWith("/api/album?photo=")) {
-            photos.push(photo);
-            continue;
-          }
-          let src = uploaded.get(photo.src);
-          if (!src) {
-            setPublishNotice(`Uploading photos from page ${manifest.length + 1} of ${pages.length}…`);
-            const response = await postAlbum(online ? "draft-photo" : "photo", online ? onlineKey : adminKey, await albumJpeg(photo.src));
-            const result = await response.json().catch(() => ({}));
-            if (!response.ok || typeof result.src !== "string") {
-              throw new Error(`Page ${manifest.length + 1}, pocket ${photos.length + 1}: ${result.error ?? "Photo upload failed."}`);
-            }
-            src = result.src as string;
-            uploaded.set(photo.src, src);
-          }
-          photos.push({ ...photo, src });
-        }
-        manifest.push({ ...item, photos });
+      const snapshot = pagesRef.current;
+      const { pages: manifest, swap } = await withUploadedPhotos(snapshot, (page) => {
+        setPublishNotice(`Uploading photos from page ${page} of ${snapshot.length}…`);
+      });
+      if (manifest !== snapshot) {
+        pagesRef.current = swap(pagesRef.current);
+        setPages(swap);
       }
-      setPublishNotice(online ? "Saving online draft…" : "Saving album layout…");
-      const result = online
-        ? await postAlbum("draft-save", onlineKey, JSON.stringify({ pages: manifest, revision: onlineRevision }))
-        : await postAlbum("publish", adminKey, JSON.stringify(manifest));
+      setPublishNotice("Saving album layout…");
+      const result = await postAlbum("publish", syncKey.current, JSON.stringify(manifest));
       if (!result.ok) {
         const failure = await result.json().catch(() => ({}));
         throw new Error(failure.error ?? "Couldn’t save the album layout.");
       }
-      if (online) {
-        const { revision } = await result.json();
-        setOnlineRevision(revision);
-        setPublishNotice("Draft saved online. Open it on another device to continue editing.");
-      } else {
-        setPublishNotice("Album published. Guests can now see it on any device.");
-      }
+      setPublishNotice("Album published. Guests can now see it on any device.");
     } catch (err) {
       setPublishNotice("");
       setError(err instanceof Error ? err.message : "Couldn’t publish. Your draft is still here.");
@@ -518,13 +671,36 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
     }
   }
 
-  function saveDraft() {
-    const url = URL.createObjectURL(new Blob([JSON.stringify(pages)], { type: "application/json" }));
+  function downloadJson(data: unknown, name: string) {
+    const url = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: "application/json" }));
     const link = document.createElement("a");
     link.href = url;
-    link.download = "us-lately-album.json";
+    link.download = name;
     link.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function saveDraft() {
+    downloadJson(pages, "us-lately-album.json");
+  }
+
+  async function downloadBackup() {
+    if (!storage.current) return;
+    const backup = await readAlbumDraft(storage.current, backupKey).catch(() => undefined);
+    if (isAlbum(backup)) downloadJson(backup, "us-lately-album-this-device-backup.json");
+  }
+
+  function unlockSync() {
+    syncKey.current = keyInput;
+    try {
+      localStorage.setItem(draftKeyStorage, keyInput);
+    } catch {
+      // Remembered for this visit only.
+    }
+    setKeyInput("");
+    setKeyTried(true);
+    setSyncStatus("starting");
+    void syncNow.current();
   }
 
   async function openDraft(file?: File) {
@@ -533,7 +709,7 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
     try {
       const draft: unknown = JSON.parse(await file.text());
       if (!isAlbum(draft)) throw new Error("Invalid draft");
-      setPages(draft);
+      setPages(ensureIds(draft));
       setIndex(0);
       setOpened(false);
       setError("");
@@ -559,7 +735,7 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
                 {photo ? (
                   // Local drafts contain browser data URLs, so no image optimizer is needed.
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={admin ? photo.src : photoDisplayUrl(photo)} decoding="async" alt={photo.name} style={photoFraming(photo)} className="absolute inset-0 size-full object-contain p-1 sm:p-2" />
+                  <img src={photoDisplayUrl(photo)} decoding="async" alt={photo.name} style={photoFraming(photo)} className="absolute inset-0 size-full object-contain p-1 sm:p-2" />
                 ) : editable && <span className="px-1 text-center text-xs font-semibold text-dusk-700 sm:text-sm">+ Add photo</span>}
                 <PocketCaption photo={photo} />
                 {editable && <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" aria-label={`Choose photo for pocket ${slot + 1}`} disabled={busy} className="absolute inset-0 z-10 size-full cursor-pointer opacity-0" onChange={(event) => {
@@ -605,26 +781,32 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
           }} />
         </>}
       </div>}
-      {editing && <div className="mb-4 flex flex-wrap items-end justify-center gap-3 text-sm text-dusk-900">
+      {admin && syncStatus === "locked" && <form className="mb-4 flex flex-wrap items-end justify-center gap-3 text-sm text-dusk-900" onSubmit={(event) => {
+        event.preventDefault();
+        if (keyInput) unlockSync();
+      }}>
         <label className="grid gap-1">
-          Online draft key
-          <input type="password" value={onlineKey} autoComplete="off" disabled={busy} className="rounded-md border border-dusk-300 bg-white px-3 py-2" onChange={(event) => {
-            setOnlineKey(event.target.value);
-            setOnlineRevision(undefined);
-          }} />
+          Album draft key (asked once on each device)
+          <input type="password" value={keyInput} autoComplete="current-password" className="rounded-md border border-dusk-300 bg-white px-3 py-2" onChange={(event) => setKeyInput(event.target.value)} />
         </label>
-        <button type="button" disabled={busy || !onlineKey} className="min-h-10 underline underline-offset-4 disabled:opacity-50" onClick={() => {
-          if (window.confirm("Open the online version in this browser? Use Save draft first if you want to keep a copy of your current edits.")) void openOnlineDraft();
-        }}>Open online draft</button>
-        <button type="button" disabled={busy || !onlineKey || onlineRevision !== undefined} className="min-h-10 underline underline-offset-4 disabled:opacity-50" onClick={() => void openOnlineDraft(true)}>Start with this browser’s draft</button>
-        <button type="button" disabled={busy || onlineRevision === undefined} className="min-h-10 rounded-full bg-butter-200 px-4 font-semibold disabled:opacity-50" onClick={() => void publishAlbum(true)}>Save online draft</button>
-      </div>}
+        <button type="submit" disabled={!keyInput} className="min-h-10 rounded-full bg-butter-200 px-4 font-semibold disabled:opacity-50">Unlock syncing</button>
+      </form>}
       {admin && <p role="status" className="mb-4 text-center text-sm text-dusk-700">
-        {draftStatus === "unavailable" || saveFailed
-          ? "This browser couldn’t save your draft. Use Save draft to keep a copy before refreshing."
-          : pages !== savedPages
-            ? "Saving draft…"
-            : "Draft saved in this browser."}
+        {syncStatus === "locked"
+          ? (keyTried ? "That key didn’t work. " : "") + "Edits are saved on this device and will sync to your other devices once unlocked."
+          : syncStatus === "offline"
+            ? draftStatus === "unavailable" || saveFailed
+              ? "Can’t reach the online draft, and this browser couldn’t save your edits. Use Save draft to keep a copy before refreshing."
+              : "Can’t reach the online draft right now. Edits are saved on this device and will sync when you’re back online."
+            : syncStatus === "starting"
+              ? "Checking for changes from your other devices…"
+              : syncStatus === "syncing" || !same(pages, syncedPages)
+                ? "Saving and syncing…"
+                : "All changes saved and synced to your other devices."}
+      </p>}
+      {admin && (syncNote || hasBackup) && <p className="mb-4 text-center text-sm text-dusk-700">
+        {syncNote}{syncNote && hasBackup && " "}
+        {hasBackup && <button type="button" className="underline underline-offset-4" onClick={() => void downloadBackup()}>Download this device’s older copy</button>}
       </p>}
       {publishNotice && <p role="status" className="mb-4 text-center text-sm text-dusk-700">{publishNotice}</p>}
       {editing && <p className="mb-5 text-center text-sm text-dusk-700">Choose a layout and fill the pockets. Adding several photos fills empty pockets first, then creates more pages as needed.</p>}
@@ -646,7 +828,7 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
               {cover?.photos[0] && (
                 // Local drafts use data URLs.
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={admin ? cover.photos[0].src : photoDisplayUrl(cover.photos[0], true)} fetchPriority="high" onLoad={() => setCoverSettled(true)} onError={() => setCoverSettled(true)} alt="" style={photoFraming(cover.photos[0])} className="size-full object-contain p-1" />
+                <img src={photoDisplayUrl(cover.photos[0], true)} fetchPriority="high" onLoad={() => setCoverSettled(true)} onError={() => setCoverSettled(true)} alt="" style={photoFraming(cover.photos[0])} className="size-full object-contain p-1" />
               )}
               <PocketCaption photo={cover?.photos[0]} />
             </span>
@@ -764,7 +946,7 @@ export function PhotoAlbum({ adminKey, initialAlbum }: { adminKey?: string; init
           <button type="button" disabled={busy || index === 0} className="min-h-11 px-2 underline disabled:opacity-40" onClick={() => movePage(-1)}>Move earlier</button>
           <button type="button" disabled={busy || index === pages.length - 1} className="min-h-11 px-2 underline disabled:opacity-40" onClick={() => movePage(1)}>Move later</button>
           <button type="button" disabled={busy} className="min-h-11 rounded-full bg-dusk-100 px-4 font-semibold" onClick={() => {
-            setPages((current) => [...current, { layout: "pair", photos: [] }]);
+            setPages((current) => [...current, { id: newPageId(), layout: "pair", photos: [] }]);
             setIndex(pages.length);
             setOpened(true);
           }}>+ Add page</button>

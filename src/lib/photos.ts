@@ -332,9 +332,12 @@ export async function writeAlbumObject(key: string, body: ArrayBuffer, contentTy
 const draftFile = "draft.json";
 const draftTag = (body: Uint8Array) => `"${createHash("sha256").update(body).digest("hex")}"`;
 
+// Optional, like PHOTO_ADMIN_KEY: unset = the online draft is open to the (unlisted) album editor, which can already
+// publish without a key. Set = each device asks for it once and remembers it.
 export function isAlbumDraftKey(value: string | null) {
   const key = process.env.ALBUM_DRAFT_KEY;
-  return !!key && value !== null && same(value, key);
+  if (!key) return true;
+  return value !== null && same(value, key);
 }
 
 export async function readOnlineAlbumDraft() {

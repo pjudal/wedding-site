@@ -260,6 +260,26 @@ A small yellow dot in the top-right corner means the laptop has lost internet; i
 **After:** put the four `R2_*` values in `.env.local`, run `npm run photos:download`. Photos land in `data/photos-export/`
 named by time and uploader (hidden ones in `hidden/`). Copy them to Google Photos or Drive by hand if you want them there.
 
+### Photo album editor (`/album-admin`): syncing between devices
+
+The editor syncs by itself, git style, so working on a phone and a laptop never overwrites the other device's work.
+No key to type and no "save online" button.
+
+- Each device keeps its own copy (IndexedDB) plus the last online version it saw (its "base").
+- A moment after each edit, every 20 seconds, and whenever the tab comes back into focus or online, it **pulls** the online
+  draft (`album/draft.json` in R2). If another device saved, it **merges**: page by page (pages have a stable `id`), field by
+  field, photo slot by photo slot. Whatever only one device changed is kept. If both changed the very same thing, the device
+  doing the merge wins. Then it **pushes**. The server refuses a push that isn't based on the latest version (409), and the
+  device just pulls, merges and tries again.
+- New photos are uploaded as soon as they're added and the draft points at the uploaded copy, so other devices see them.
+- The status line under the buttons says "All changes saved and synced", "Saving and syncing…" or "Can't reach the online
+  draft" (offline: edits stay on the device and sync later).
+- The first time a device syncs, if it had its own older draft that differs from the online one, the online one wins and the
+  device's copy is kept as "Download this device's older copy" (open it later with **Open draft** to bring it back).
+- `ALBUM_DRAFT_KEY` (Vercel env, optional): unset = open, like `PHOTO_ADMIN_KEY`. Set = each device asks once and remembers it.
+- **Publish album** is separate: guests only see what was last published.
+- Code: merge logic in `src/lib/albumSync.ts`, sync loop in `src/components/PhotoAlbum.tsx`, storage in `src/lib/photos.ts`.
+
 ### Change colors or fonts
 Colors are tokens in `globals.css` (`@theme`). Change a value there and it updates everywhere.
 Fonts are set in `layout.tsx` through `next/font/google`.
