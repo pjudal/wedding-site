@@ -10,7 +10,6 @@ const button = "rounded-lg bg-dusk-700 px-4 py-2 font-semibold text-white disabl
 export function RsvpQuestionEditor() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Answers>({});
-  const [key, setKey] = useState("");
   const [status, setStatus] = useState("");
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -44,7 +43,7 @@ export function RsvpQuestionEditor() {
     try {
       const response = await fetch("/api/rsvp/questions", {
         method: "PUT",
-        headers: { "Content-Type": "application/json", "x-rsvp-admin": key },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(questions),
       });
       const result = await response.json();
@@ -124,12 +123,7 @@ export function RsvpQuestionEditor() {
         <button type="button" disabled={questions.length >= 20} className={button} onClick={() =>
           setQuestions((current) => [...current, { id: crypto.randomUUID(), label: "", type: "short text", required: false, options: [] }])
         }>Add question</button>
-        <div className="flex flex-wrap items-end gap-3">
-          <label className="grid gap-1">RSVP admin key
-            <input type="password" className={input} autoComplete="off" value={key} onChange={(event) => setKey(event.target.value)} />
-          </label>
-          <button type="button" disabled={!key || busy} className={button} onClick={() => void publish()}>Publish questions</button>
-        </div>
+        <button type="button" disabled={busy} className={button} onClick={() => void publish()}>Publish questions</button>
       </>}
     </fieldset>}
     <p role="status">{status}</p>

@@ -1,9 +1,7 @@
-import { timingSafeEqual, createHash } from "node:crypto";
 import { readQuestions, writeQuestions } from "@/lib/rsvp-question-store";
 import { validateQuestions } from "@/lib/rsvp-questions";
 
 const headers = { "Cache-Control": "no-store" };
-const digest = (value: string) => createHash("sha256").update(value).digest();
 
 export async function GET() {
   try {
@@ -14,11 +12,6 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
-  const secret = process.env.RSVP_ADMIN_KEY;
-  const supplied = request.headers.get("x-rsvp-admin");
-  if (!secret || !supplied || !timingSafeEqual(digest(secret), digest(supplied))) {
-    return Response.json({ error: "Enter your RSVP admin key." }, { status: 403, headers });
-  }
   const raw = await request.text();
   try {
     const questions: unknown = raw.length <= 60_000 ? JSON.parse(raw) : null;
